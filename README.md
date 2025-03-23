@@ -1,5 +1,5 @@
 > [!CAUTION]
-> The only official places to download Fishstrap are this GitHub repository and [fishstrap.app](https://www.fishstrap.app). Any other websites offering downloads or claiming to be us are not controlled by us.
+> The only official places to download Leafstrap are this GitHub repository. Any other websites offering downloads or claiming to be us are not controlled by us.
 
 <p align="center">
     <img src="https://github.com/returnrqt/fishstrap/raw/main/Images/Bloxstrap-full-dark.png#gh-dark-mode-only" width="420">
@@ -8,9 +8,7 @@
 
 <div align="center">
 
-![Fishstrap Showcase](https://www.fishstrap.app/img/Showcase.png)
-
-Fishstrap is a Bloxstrap fork aiming to enhance some of the features.
+Leafstrap is a Bloxstrap fork aiming to enhance some of the features.
 
 Found any bugs? [Submit an issue](https://github.com/returnrqt/fishstrap/issues/new/choose) or create a bug report in our [Discord server](https://discord.gg/SRs5zb9BJd).
 
