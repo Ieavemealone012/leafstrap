@@ -14,15 +14,15 @@ namespace Bloxstrap
     public partial class App : Application
     {
 #if QA_BUILD
-        public const string ProjectName = "Fishstrap-QA";
+        public const string ProjectName = "Leafstrap-QA";
 #else
-        public const string ProjectName = "Fishstrap";
+        public const string ProjectName = "Leafstrap";
 #endif
-        public const string ProjectOwner = "returnrqt";
-        public const string ProjectRepository = "returnrqt/fishstrap";
-        public const string ProjectDownloadLink = "https://github.com/returnrqt/fishstrap/releases";
+        public const string ProjectOwner = "Ieavemealone012"; // leavemealone012
+        public const string ProjectRepository = "Ieavemealone012/leafstrap"; // Ieavemealone012/leafstrap
+        public const string ProjectDownloadLink = "https://github.com/Ieavemealone012/leafstrap/releases";
         public const string ProjectHelpLink = "https://github.com/bloxstraplabs/bloxstrap/wiki";
-        public const string ProjectSupportLink = "https://github.com/returnrqt/fishstrap/issues/new";
+        public const string ProjectSupportLink = "https://github.com/Ieavemealone012/leafstrap/issues/new";
 
         public const string RobloxPlayerAppName = "RobloxPlayerBeta.exe";
         public const string RobloxStudioAppName = "RobloxStudioBeta.exe";
@@ -162,7 +162,7 @@ namespace Bloxstrap
             const string LOG_IDENT = "App::AssertWindowsOSVersion";
 
             int major = Environment.OSVersion.Version.Major;
-            if (major < 10) // Windows 10 and newer only
+            if (major < 10) // Windows 10 and newer only - this is because of the way we use certain APIs and also to prevent new installs on unsupported OS versions
             {
                 Logger.WriteLine(LOG_IDENT, $"Detected unsupported Windows version ({Environment.OSVersion.Version}).");
 

@@ -285,7 +285,7 @@ namespace Bloxstrap
 
                     // get process name
                     string ProcessName = App.RobloxPlayerAppName.Split(".")[0];
-                    App.Logger.WriteLine(LOG_IDENT, $"Resolved Roblox name {ProcessName}.exe, running Fishstrap in background.");
+                    App.Logger.WriteLine(LOG_IDENT, $"Resolved Roblox name {ProcessName}.exe, running Leafstrap in background.");
 
                     // now yield until the processes are closed
                     while (Process.GetProcessesByName(ProcessName).Any())
