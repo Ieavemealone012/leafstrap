@@ -1,5 +1,5 @@
 > [!CAUTION]
-> The only official places to download Fishstrap are this GitHub repository and [fishstrap.app](https://www.fishstrap.app). Any other websites offering downloads or claiming to be us are not controlled by us.
+> The only official places to download Leafstrap are this GitHub repository. Any other websites offering downloads or claiming to be us are not controlled by me.
 >
 > *(links below have been updated to point at your fork)*
 >
@@ -10,9 +10,9 @@
 
 <div align="center">
 
-![Fishstrap Showcase](https://www.fishstrap.app/img/Showcase.png)
+![Leafstrap Showcase](https://www.fishstrap.app/img/Showcase.png)
 
-Fishstrap is a Bloxstrap fork aiming to enhance some of the features.
+Leafstrap is a Fishstrap fork aiming to enhance some of the features.
 
 Found any bugs? [Submit an issue](https://github.com/Ieavemealone012/leafstrap/issues/new/choose) or create a bug report in our [Discord server](https://discord.gg/SRs5zb9BJd).
 
@@ -70,3 +70,4 @@ Found any bugs? [Submit an issue](https://github.com/Ieavemealone012/leafstrap/i
 [repo-latest]:   https://github.com/Ieavemealone012/leafstrap/releases/latest
 
 [discord-invite]:  https://discord.gg/SRs5zb9BJd
+
