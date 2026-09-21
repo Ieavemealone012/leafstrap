@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: 2026 Froststrap
+// SPDX-FileCopyrightText: 2026 Froststrap
 //
 // SPDX-License-Identifier: MPL-2.0
 
@@ -59,7 +59,7 @@ namespace Froststrap.UI.Elements.Base
 
         public AvaloniaWindow()
         {
-            var uri = new Uri("avares://Froststrap/UI/Elements/Base/BackgroundPanel.axaml");
+            var uri = new Uri("avares://Leafstrap/UI/Elements/Base/BackgroundPanel.axaml");
             var panel = (Panel)AvaloniaXamlLoader.Load(uri);
 
             _backgroundBorder = panel.Find<Border>("PART_BackgroundBorder");
@@ -163,7 +163,7 @@ namespace Froststrap.UI.Elements.Base
             {
                 try
                 {
-                    var themeUri = new Uri($"avares://Froststrap/UI/AppThemes/ResourceDictionarys/{themeName}.axaml");
+                    var themeUri = new Uri($"avares://Leafstrap/UI/AppThemes/ResourceDictionarys/{themeName}.axaml");
                     var loadedTheme = AvaloniaXamlLoader.Load(themeUri);
                     if (loadedTheme is ResourceDictionary dict)
                     {
@@ -174,7 +174,7 @@ namespace Froststrap.UI.Elements.Base
                             backgroundBrush = themeBg as IBrush;
                     }
 
-                    var styleUri = new Uri($"avares://Froststrap/UI/AppThemes/Styles/{themeName}.axaml");
+                    var styleUri = new Uri($"avares://Leafstrap/UI/AppThemes/Styles/{themeName}.axaml");
                     var loadedStyle = AvaloniaXamlLoader.Load(styleUri);
                     if (loadedStyle is Styles loadedStyles)
                     {

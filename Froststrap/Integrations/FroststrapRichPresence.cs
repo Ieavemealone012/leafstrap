@@ -22,7 +22,7 @@ namespace Froststrap.Integrations
         public FroststrapRichPresence()
         {
             _rpcClient = new DiscordRpcClient(
-                "1399535282713399418",
+                "1551320282977804518",
                 -1,
                 null,
                 true,
@@ -107,14 +107,14 @@ namespace Froststrap.Integrations
                 Timestamps = _startTimestamps,
                 Assets = new Assets
                 {
-                    LargeImageKey = "froststrap",
-                    LargeImageText = "Froststrap",
+                    LargeImageKey = "leafstrap",
+                    LargeImageText = App.ProjectName,
                     SmallImageKey = "checkmark",
                     SmallImageText = $"v{App.Version}"
                 },
                 Buttons =
                 [
-                    new Button { Label = "GitHub", Url = "https://github.com/Froststrap/Froststrap" },
+                    new Button { Label = "GitHub", Url = $"https://github.com/{App.ProjectRepository}" },
                     new Button { Label = "Discord", Url = "https://discord.gg/KdR9vpRcUN" }
                 ]
             };

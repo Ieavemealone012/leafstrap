@@ -14,7 +14,7 @@ mod test {
 
     #[test]
     fn test_notification_send() {
-        crate::notify::set_application(CString::new("xyz.froststrap.desktop").unwrap().as_ptr());
+        crate::notify::set_application(CString::new("io.github.ieavemealone012.leafstrap").unwrap().as_ptr());
         let title = CString::new("Notification Test").unwrap();
         let description = CString::new("A description came with the test too!").unwrap();
 

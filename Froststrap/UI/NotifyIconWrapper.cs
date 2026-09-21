@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: 2026 Froststrap
+// SPDX-FileCopyrightText: 2026 Froststrap
 //
 // SPDX-License-Identifier: MPL-2.0
 
@@ -42,8 +42,8 @@ namespace Froststrap.UI
 
             _trayIcon = new TrayIcon
             {
-                Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://Froststrap/FroststrapTray.ico"))),
-                ToolTipText = "Froststrap",
+                Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://Leafstrap/LeafstrapTray.ico"))),
+                ToolTipText = App.ProjectName,
                 Menu = nativeMenu
             };
 

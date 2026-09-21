@@ -6,7 +6,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>xyz.froststrap.roblox</string>
+			<string>io.github.ieavemealone012.leafstrap.roblox</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLSchemes</key>
@@ -23,7 +23,7 @@
 	<array>
 		<dict>
 			<key>UTTypeIdentifier</key>
-			<string>xyz.froststrap.roblox.place</string>
+			<string>io.github.ieavemealone012.leafstrap.roblox.place</string>
 			<key>UTTypeDescription</key>
 			<string>Roblox Place</string>
 			<key>UTTypeConformsTo</key>
@@ -42,7 +42,7 @@
 
 		<dict>
 			<key>UTTypeIdentifier</key>
-			<string>xyz.froststrap.roblox.model</string>
+			<string>io.github.ieavemealone012.leafstrap.roblox.model</string>
 			<key>UTTypeDescription</key>
 			<string>Roblox Model</string>
 			<key>UTTypeConformsTo</key>
@@ -69,7 +69,7 @@
 			<string>Viewer</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>xyz.froststrap.roblox.place</string>
+				<string>io.github.ieavemealone012.leafstrap.roblox.place</string>
 			</array>
 		</dict>
 
@@ -80,7 +80,7 @@
 			<string>Viewer</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>xyz.froststrap.roblox.model</string>
+				<string>io.github.ieavemealone012.leafstrap.roblox.model</string>
 			</array>
 		</dict>
 	</array>

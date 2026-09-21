@@ -196,20 +196,20 @@ internal class Updater
         {
             if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
             {
-                return ["Froststrap-windows-x64.exe", "-windows-x64.exe"];
+                return ["Leafstrap-windows-x64.exe", "-windows-x64.exe"];
             } else {
-                return ["Froststrap-windows-arm64.exe", "-windows-arm64.exe"];
+                return ["Leafstrap-windows-arm64.exe", "-windows-arm64.exe"];
             }
         }
         else if (OperatingSystem.IsMacOS())
         {
             if (RuntimeInformation.OSArchitecture == Architecture.X64)
             {
-                return ["Froststrap-macos-x64.pkg", "-macos-x64.pkg"];
+                return ["Leafstrap-macos-x64.pkg", "-macos-x64.pkg"];
             }
             else
             {
-                return ["Froststrap-macos-arm64.pkg", "-macos-arm64.pkg"];
+                return ["Leafstrap-macos-arm64.pkg", "-macos-arm64.pkg"];
             }
         }
 
@@ -468,7 +468,7 @@ exit";
         }
         if (Utility.Versioning.CompareVersions(existingVer, "1.4.2") == VersionComparison.LessThan)
         {
-            string genCacheDir = Path.Combine(Path.GetTempPath(), "Froststrap", "mod-generator");
+            string genCacheDir = Path.Combine(Path.GetTempPath(), "Leafstrap", "mod-generator");
             string pluginCacheDir = Path.Combine(Paths.Roblox, "Plugins", "FroststrapStudioRPC.rbxmx");
 
             if (Directory.Exists(genCacheDir))
@@ -490,7 +490,7 @@ exit";
 
         if (Utility.Versioning.CompareVersions(existingVer, "1.5.1") == VersionComparison.LessThan)
         {
-            App.Settings.Prop.BootstrapperStyle = BootstrapperStyle.FluentAeroDialog;
+            App.Settings.Prop.BootstrapperStyle = BootstrapperStyle.ClassicFluentDialog;
             App.Settings.Prop.SelectedBackdrop = WindowsBackdrops.None;
         }
 

@@ -1,113 +1,48 @@
-<h1 align="center">
-    Froststrap
-</h1>
+<h1 align="center">Leafstrap</h1>
 
 <p align="center">
-    Froststrap is a cross-platform Roblox bootstrapper derived from <a href="https://github.com/fishstrap/fishstrap.git"><strong>Fishstrap</strong></a>.
+  A customizable, cross-platform Roblox bootstrapper for Windows and macOS.
 </p>
 
 <p align="center">
-    <img src="./.resources/froststrap.png" height=200 alt="logo"/>
+  <img src="./.resources/leafstrap.png" height="180" alt="Leafstrap logo" />
 </p>
 
-<p align="center">
-    If you'd like to support our project, consider giving this repository a star!
-</p>
+Leafstrap gives you more control over how Roblox launches and behaves, with launcher customization, mods, FastFlag profiles, deployment controls, account tools, region selection, and Discord Rich Presence in one app.
 
-<div align="center">
+## macOS support
 
-[![License][badge-repo-license]][repo-license]
-[![Downloads (Total)][badge-repo-downloads-total]][repo-releases]
-[![Downloads (Latest)][badge-repo-downloads]][repo-releases]
-[![Version][badge-repo-latest]][repo-latest]
-[![Stars][badge-repo-stars]][repo-stargazer]
-[![Discord][badge-discord]][discord-invite]
+This branch targets **macOS 14 Sonoma or newer** and produces separate installers for:
 
-</div>
+- Apple Silicon (`Leafstrap-macos-arm64.pkg`) — M1, M2, M3, M4, and newer Apple chips
+- Intel (`Leafstrap-macos-x64.pkg`) — Intel-based Macs
 
-> [!CAUTION]
-> The official repository [Froststrap/Froststrap](https://github.com/Froststrap/Froststrap.git) and [our website](https://froststrap.xyz) are the **ONLY PLACES** where you should download the binary/executable. Any other source is **NOT** affiliated with us and poses a potential security threat.
+Download the package matching **Apple menu → About This Mac → Chip/Processor**.
 
----
+> [!NOTE]
+> Packages built without Apple Developer credentials are unsigned. For private testing, right-click the package and choose **Open**. A public release should be Developer ID signed and notarized so Gatekeeper can verify it normally.
 
-## Key Improvements Over Fishstrap
+## Building the macOS packages
 
-### Integrations
-- Automatically rejoin servers you were disconnected from due to inactivity
-- Disable Roblox’s built-in screenshot and video recording system
-- Custom Froststrap Discord RPC that shows the current page/dialog
-- Replace "Playing Roblox" with the name of the game you're playing using Custom Status Display
-- The playtime counter shows both total and session playtime
-- Roblox Studio RPC integrated within Froststrap
-    * Change the Studio RPC thumbnail depending on the script that is open
-    * Show script type, name, and number of lines of code
+The included GitHub Actions workflow is the recommended build path because creating a `.pkg` requires Xcode and Apple's packaging tools.
 
-### Mods
-- Multi-mod system that allows you to download many mods at once
-- Select where to apply the mod (Player/Studio)
-- Download community-made mods directly from within the app
-- Generate mods using hex codes, with options to color the cursor, Shift Lock, or Emote Wheel
-- Change the cursor, Shift Lock, death sound, and game font by selecting a file
-- Use custom cursor sets to change between your cursors faster
+1. Push this repository to GitHub with its submodules.
+2. Open **Actions → Build Leafstrap for macOS → Run workflow**.
+3. Download both packages from the completed workflow's **Artifacts** section.
 
-### FastFlag Enhancements
-- Automatic notification when applying FastFlags that are not in the Roblox FastFlag Allowlist
-- Create or use FastFlag profiles
-- Change all Roblox FastFlags in the allowlist via the FastFlag settings
-- Click 'Clean List' to remove flags that are not in the Roblox FastFlag Allowlist
+Creating a tag such as `v1.0.3-macos.1` also creates a draft GitHub release containing both packages. If all Apple signing secrets documented in [MACOS-BUILD.md](./MACOS-BUILD.md) are configured, tagged builds are signed and notarized automatically.
 
-### UI & Appearance
-- Fully customizable bootstrapper launcher
-- Change the app font to any font you prefer
-- Supports image and gradient background themes
-- Built-in app themes
-- Change the window background to Aero, Acrylic, or Mica
+## Highlights
 
-### Settings
-- Easily switch Roblox update channels
-- Option to fully block Roblox updates
-- Replace Roblox’s changing version-xxxxx folders with a non-changing folder
-- View all currently available Roblox channels
+- Customizable bootstrapper with Leafstrap Classic as the default
+- Roblox Player and Studio launch/deployment controls
+- Mods, FastFlag profiles, and region selection
+- Account manager and Quick Play tools
+- Leafstrap and Roblox Studio Discord Rich Presence
+- Native macOS URI and Roblox place/model file handling
 
-### Extra Features
-- Easily import settings from other bootstrappers such as Fishstrap and Bloxstrap
-- Create game shortcuts for faster game joining
-- Join servers in your region more easily using the region selector
-- Join servers in your selected region through the system tray while playing
-- Built-in account manager
+## Credits and licensing
 
-More features are planned! You can also suggest new features in the Issues section.
+Leafstrap's cross-platform foundation is based on [Froststrap](https://github.com/Froststrap/Froststrap), which is derived from [Fishstrap](https://github.com/fishstrap/fishstrap) and [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap). Their contributors made the macOS backend and much of the feature set possible.
 
----
-
-## Licensing
-
-All new code revisions are under [MPL-2.0](https://opensource.org/license/MPL-2.0).
-
-## Stargazing
-
-To support the development of Froststrap, consider giving the repository a star.
-
-<a href="https://www.star-history.com/?repos=Froststrap%2FFroststrap%2CRealMeddsam%2FFroststrap&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Froststrap/Froststrap%2CRealMeddsam/Froststrap&type=date&theme=dark&legend=top-left&sealed_token=mcrWZsIP88D5qAkHowWR1bKJmP4Url9TuBUe9Pxn_nc77CR_u3B9F3lLVq5d4RJVDk6rRsr6Un-gsk-LP-wdNR3YOOcYRoM2hnj6fz-g-2OVn-TA3PVrBg" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Froststrap/Froststrap%2CRealMeddsam/Froststrap&type=date&legend=top-left&sealed_token=mcrWZsIP88D5qAkHowWR1bKJmP4Url9TuBUe9Pxn_nc77CR_u3B9F3lLVq5d4RJVDk6rRsr6Un-gsk-LP-wdNR3YOOcYRoM2hnj6fz-g-2OVn-TA3PVrBg" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Froststrap/Froststrap&type=date&legend=top-left&sealed_token=mcrWZsIP88D5qAkHowWR1bKJmP4Url9TuBUe9Pxn_nc77CR_u3B9F3lLVq5d4RJVDk6rRsr6Un-gsk-LP-wdNR3YOOcYRoM2hnj6fz-g-2OVn-TA3PVrBg" />
- </picture>
-</a>
-
-<!-- Badge defs -->
-[badge-repo-license]: https://img.shields.io/github/license/Froststrap/Froststrap?style=for-the-badge&color=37add9
-[badge-repo-downloads]: https://img.shields.io/github/downloads/Froststrap/Froststrap/latest/total?style=for-the-badge&color=37add9
-[badge-repo-downloads-total]: https://img.shields.io/github/downloads/Froststrap/Froststrap/total?style=for-the-badge&color=37add9
-[badge-repo-latest]: https://img.shields.io/github/v/release/Froststrap/Froststrap?style=for-the-badge&color=37add9
-[badge-repo-stars]: https://img.shields.io/github/stars/Froststrap/Froststrap?style=for-the-badge&color=37add9
-[badge-discord]: https://img.shields.io/discord/1364660238963179520?style=for-the-badge&label=discord&color=5865f2
-
-[repo-license]: https://github.com/Froststrap/Froststrap/blob/main/LICENSE
-[repo-actions]: https://github.com/Froststrap/Froststrap/actions
-[repo-releases]: https://github.com/Froststrap/Froststrap/releases
-[repo-latest]: https://github.com/Froststrap/Froststrap/releases/latest
-[repo-stargazer]: https://github.com/Froststrap/Froststrap/stargazers
-
-[discord-invite]: https://discord.gg/KdR9vpRcUN
+Leafstrap remains licensed under the [Mozilla Public License 2.0](./LICENSE). Source notices and upstream attribution are intentionally preserved.

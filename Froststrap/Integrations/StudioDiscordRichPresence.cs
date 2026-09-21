@@ -23,7 +23,7 @@ namespace Froststrap.Integrations
 
         public StudioDiscordRichPresence(ActivityWatcher activityWatcher)
         {
-            _rpcClient = new DiscordRpcClient("1454451301130960896", -1, null, true, DiscordIpcPipeClient.Create());
+            _rpcClient = new DiscordRpcClient("1551323285638352967", -1, null, true, DiscordIpcPipeClient.Create());
             _activityWatcher = activityWatcher;
 
             _activityWatcher.OnStudioRPCMessage += (_, message) => ProcessRPCMessage(message);

@@ -1,61 +1,61 @@
 {
   "images" : [
     {
-      "filename" : "Froststrap_New_Logo_5.png",
+      "filename" : "Leafstrap-16.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
-      "filename" : "Froststrap_New_Logo_4.png",
+      "filename" : "Leafstrap-32.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
-      "filename" : "Froststrap_New_Logo_4 1.png",
+      "filename" : "Leafstrap-32.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
-      "filename" : "Froststrap_New_Logo_3.png",
+      "filename" : "Leafstrap-64.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
-      "filename" : "Froststrap_New_Logo_2.png",
+      "filename" : "Leafstrap-128.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
-      "filename" : "Froststrap_New_Logo_1 1.png",
+      "filename" : "Leafstrap-256.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
-      "filename" : "Froststrap_New_Logo_1.png",
+      "filename" : "Leafstrap-256.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
-      "filename" : "Froststrap_New_Logo 1.png",
+      "filename" : "Leafstrap-512.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
     },
     {
-      "filename" : "Froststrap_New_Logo.png",
+      "filename" : "Leafstrap-512.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
     },
     {
-      "filename" : "Froststrap_New_Logo_1 2.png",
+      "filename" : "Leafstrap-1024.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"

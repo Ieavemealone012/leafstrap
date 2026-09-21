@@ -99,7 +99,7 @@ SPDX-License-Identifier: MPL-2.0
                                                FontSize="11" Opacity="0.6"
                                                TextTrimming="CharacterEllipsis"
                                                VerticalAlignment="Center"/>
-									<Image Source="avares://Froststrap/Resources/RobloxVerified.png"
+									<Image Source="avares://Leafstrap/Resources/RobloxVerified.png"
                                            Width="12" Height="12"
                                            VerticalAlignment="Center"
                                            IsVisible="{Binding IsVerified}"/>
@@ -187,7 +187,7 @@ SPDX-License-Identifier: MPL-2.0
                                                            FontSize="11" Opacity="0.6"
                                                            TextTrimming="CharacterEllipsis"
                                                            VerticalAlignment="Center"/>
-												<Image Source="avares://Froststrap/Resources/RobloxVerified.png"
+												<Image Source="avares://Leafstrap/Resources/RobloxVerified.png"
                                                        Width="12" Height="12"
                                                        VerticalAlignment="Center"
                                                        IsVisible="{Binding SelectedGame.IsVerified}"/>

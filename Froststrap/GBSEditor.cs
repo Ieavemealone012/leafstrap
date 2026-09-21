@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: 2026 Froststrap
+// SPDX-FileCopyrightText: 2026 Froststrap
 //
 // SPDX-License-Identifier: MPL-2.0
 
@@ -321,7 +321,7 @@ namespace Froststrap
                     App.Logger.Info($"Created directory: {directory}");
                 }
 
-                var uri = new Uri("avares://Froststrap/Resources/GlobalBasicSettings_Template.xml");
+                var uri = new Uri("avares://Leafstrap/Resources/GlobalBasicSettings_Template.xml");
                 using var resourceStream = Avalonia.Platform.AssetLoader.Open(uri);
                 using var fileStream = File.Create(FileLocation);
                 resourceStream.CopyTo(fileStream);

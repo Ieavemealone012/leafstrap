@@ -2007,7 +2007,7 @@ internal partial class Bootstrapper : IDisposable
         {
             App.Logger.Error(ex, "Flatpak not found.");
             await Frontend.ShowMessageBox(
-                "Flatpak is required on Linux.\n\nPlease install Flatpak first, then launch Froststrap again.",
+                "Flatpak is required on Linux.\n\nPlease install Flatpak first, then launch Leafstrap again.",
                 MessageBoxImage.Error
             );
             App.Terminate(ErrorCode.ERROR_CANCELLED);

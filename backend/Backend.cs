@@ -74,7 +74,7 @@ public class NativeNotify
     public static void InitRing()
     {
         InternalNativeNotify.RequestPermission();
-        InternalNativeNotify.SetApplication("xyz.froststrap.desktop");
+        InternalNativeNotify.SetApplication("io.github.ieavemealone012.leafstrap");
     }
 
     public static void SendMessage(

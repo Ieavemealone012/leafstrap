@@ -38,14 +38,14 @@ SPDX-License-Identifier: MPL-2.0
             <Grid Margin="0,0,0,24" HorizontalAlignment="Center" ColumnDefinitions="Auto,*">
                 <Panel Grid.Column="0">
                     <Image x:Name="Image1" Width="72" Height="72" VerticalAlignment="Center"
-                           Source="avares://Froststrap/Froststrap.png" RenderOptions.BitmapInterpolationMode="HighQuality" />
+                           Source="avares://Leafstrap/Leafstrap.png" RenderOptions.BitmapInterpolationMode="HighQuality" />
                     <Image x:Name="Image2" Width="72" Height="72" VerticalAlignment="Center"
-                           Source="avares://Froststrap/Resources/BootstrapperStyles/ByfronDialog/Matt.png" RenderOptions.BitmapInterpolationMode="HighQuality"
+                           Source="avares://Leafstrap/Resources/BootstrapperStyles/ByfronDialog/Matt.png" RenderOptions.BitmapInterpolationMode="HighQuality"
                            Opacity="0" />
                 </Panel>
 
                 <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="Froststrap" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="Leafstrap" FontSize="24" FontWeight="Bold" />
                     <TextBlock Text="{x:Static resources:Strings.Menu_About_Description}"
                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"  />
                 </StackPanel>
@@ -55,7 +55,7 @@ SPDX-License-Identifier: MPL-2.0
                 <Button Margin="0,0,8,8"
                         Content="{x:Static resources:Strings.Menu_About_GithubRepository}"
                         Command="{x:Static models:GlobalViewModel.OpenWebpageCommand}"
-                        CommandParameter="https://github.com/Froststrap/Froststrap" />
+                        CommandParameter="https://github.com/Ieavemealone012/leafstrap" />
 
                 <Button Margin="0,0,8,8"
                         Content="{x:Static resources:Strings.Menu_About_HelpInformation}"
@@ -65,13 +65,19 @@ SPDX-License-Identifier: MPL-2.0
                 <Button Margin="0,0,8,8"
                         Content="{x:Static resources:Strings.Menu_About_ReportIssue}"
                         Command="{x:Static models:GlobalViewModel.OpenWebpageCommand}"
-                        CommandParameter="https://github.com/Froststrap/Froststrap/issues" />
+                        CommandParameter="https://github.com/Ieavemealone012/leafstrap/issues" />
 
                 <Button Margin="0,0,0,8"
                         Content="{x:Static resources:Strings.Menu_About_DiscordServer}"
                         Command="{x:Static models:GlobalViewModel.OpenWebpageCommand}"
                         CommandParameter="https://discord.gg/KdR9vpRcUN" />
             </WrapPanel>
+
+            <TextBlock Margin="0,8,0,0"
+                       HorizontalAlignment="Center"
+                       Text="Leafstrap is based on Froststrap and distributed under the Mozilla Public License 2.0."
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
 
             <StackPanel IsVisible="{Binding BuildInformationVisibility}">
                 <TextBlock Text="{x:Static resources:Strings.Menu_About_BuildInfo}" FontWeight="Bold" FontSize="20" Margin="0,16,0,0" />

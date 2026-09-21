@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: 2026 Froststrap
+// SPDX-FileCopyrightText: 2026 Froststrap
 //
 // SPDX-License-Identifier: MPL-2.0
 
@@ -463,7 +463,7 @@ namespace Froststrap.UI.ViewModels.Settings.Mods
 
             string zipPath = files[0].Path.LocalPath;
             string zipFileName = Path.GetFileNameWithoutExtension(zipPath);
-            string tempDir = Path.Combine(Path.GetTempPath(), "Froststrap_ModImport_" + Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetTempPath(), "Leafstrap_ModImport_" + Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
 
             try
@@ -498,7 +498,7 @@ namespace Froststrap.UI.ViewModels.Settings.Mods
                          Path.GetExtension(path).Equals(".zip", StringComparison.OrdinalIgnoreCase))
                 {
                     string zipFileName = Path.GetFileNameWithoutExtension(path);
-                    string tempDir = Path.Combine(Path.GetTempPath(), "Froststrap_ModImport_" + Guid.NewGuid().ToString());
+                    string tempDir = Path.Combine(Path.GetTempPath(), "Leafstrap_ModImport_" + Guid.NewGuid().ToString());
                     Directory.CreateDirectory(tempDir);
 
                     try
@@ -680,13 +680,13 @@ namespace Froststrap.UI.ViewModels.Settings.Mods
         {
             try
             {
-                var regularFont = new FontFamily("avares://Froststrap/Resources/Fonts#BuilderIcons-Regular");
+                var regularFont = new FontFamily("avares://Leafstrap/Resources/Fonts#BuilderIcons-Regular");
                 var regularTypeface = new Typeface(regularFont);
                 var regularText = char.ConvertFromUtf32(0xF101);
                 var regularFt = new FormattedText(regularText, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, regularTypeface, 20, Brushes.White);
                 RegularPreviewData = regularFt.BuildGeometry(new Point(0, 0));
 
-                var filledFont = new FontFamily("avares://Froststrap/Resources/Fonts#BuilderIcons-Filled");
+                var filledFont = new FontFamily("avares://Leafstrap/Resources/Fonts#BuilderIcons-Filled");
                 var filledTypeface = new Typeface(filledFont);
                 var filledText = char.ConvertFromUtf32(0xF101);
                 var filledFt = new FormattedText(filledText, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, filledTypeface, 20, Brushes.White);
@@ -862,8 +862,8 @@ namespace Froststrap.UI.ViewModels.Settings.Mods
                 if (fontFamily == null)
                 {
                     fontFamily = fontVariant.Equals("Filled", StringComparison.OrdinalIgnoreCase)
-                        ? new FontFamily("avares://Froststrap/Resources/Fonts#BuilderIcons-Filled")
-                        : new FontFamily("avares://Froststrap/Resources/Fonts#BuilderIcons-Regular");
+                        ? new FontFamily("avares://Leafstrap/Resources/Fonts#BuilderIcons-Filled")
+                        : new FontFamily("avares://Leafstrap/Resources/Fonts#BuilderIcons-Regular");
                 }
 
                 var typeface = new Typeface(fontFamily);

@@ -14,7 +14,7 @@ public partial class Build : FalloutBuild
         AbsolutePath virtualbackendBuildRoot = GitRoot / "backend" / "virtualdisplay" / ".build";
         AbsolutePath macAppLocation = FalloutRoot / "Publish" / "macApp";
         AbsolutePath xcodeProjectLocation = macAppLocation / "macApp.xcodeproj";
-        AbsolutePath entitlementsPath = macAppLocation / "Froststrap.entitlements";
+        AbsolutePath entitlementsPath = macAppLocation / "Leafstrap.entitlements";
         AbsolutePath virtualDisplayDir = GitRoot / "backend" / "virtualdisplay";
         AbsolutePath dylibDest = (AbsolutePath)outputDirectory / "libvirtualdisplay.dylib";
 
@@ -29,7 +29,7 @@ public partial class Build : FalloutBuild
         var xcbProc = new Process();
         xcbProc.StartInfo.FileName = "xcodebuild";
         xcbProc.StartInfo.Arguments = $"-project {xcodeProjectLocation} " +
-                                      "-target Froststrap " +
+                                      "-target Leafstrap " +
                                       $"-configuration {Configuration} " +
                                       "CODE_SIGNING_ALLOWED=NO " +
                                       "build";
@@ -43,8 +43,8 @@ public partial class Build : FalloutBuild
             throw new Exception("xcodebuild failed");
         }
 
-        var src = (AbsolutePath)macAppLocation / "build" / Configuration / "Froststrap.app";
-        var dest = (AbsolutePath)outputDirectory / "Froststrap.app";
+        var src = (AbsolutePath)macAppLocation / "build" / Configuration / "Leafstrap.app";
+        var dest = (AbsolutePath)outputDirectory / "Leafstrap.app";
         Log.Information("Copying {src} artifact to {OutDir}", src, dest);
 
         var copyProc = new Process();
@@ -103,17 +103,17 @@ public partial class Build : FalloutBuild
 
         AbsolutePath payloadDir = (AbsolutePath)outputDirectory / "payload";
         AbsolutePath payloadApplications = payloadDir / "Applications";
-        AbsolutePath unsignedPkg = (AbsolutePath)outputDirectory / "Froststrap-unsigned.pkg";
-        AbsolutePath finalPkg = (AbsolutePath)outputDirectory / "Froststrap.pkg";
+        AbsolutePath unsignedPkg = (AbsolutePath)outputDirectory / "Leafstrap-unsigned.pkg";
+        AbsolutePath finalPkg = (AbsolutePath)outputDirectory / "Leafstrap.pkg";
 
         Log.Information("Signing .app with {DeveloperIdApp}", developerIdApp);
         RunProcess("codesign", $"--force --deep --options runtime --entitlements \"{entitlementsPath}\" --sign \"{developerIdApp}\" \"{appPath}\"");
         RunProcess("codesign", $"--verify --verbose=4 \"{appPath}\"");
 
         Directory.CreateDirectory(payloadApplications);
-        RunProcess("cp", $"-r \"{appPath}\" \"{payloadApplications / "Froststrap.app"}\"");
+        RunProcess("cp", $"-r \"{appPath}\" \"{payloadApplications / "Leafstrap.app"}\"");
 
-        RunProcess("pkgbuild", $"--root \"{payloadDir}\" --install-location / --identifier xyz.froststrap.desktop \"{unsignedPkg}\"");
+        RunProcess("pkgbuild", $"--root \"{payloadDir}\" --install-location / --identifier io.github.ieavemealone012.leafstrap \"{unsignedPkg}\"");
 
         Log.Information("Signing PKG with {DeveloperIdInstaller}", developerIdInstaller);
         RunProcess("productsign", $"--sign \"{developerIdInstaller}\" \"{unsignedPkg}\" \"{finalPkg}\"");
@@ -164,12 +164,12 @@ public partial class Build : FalloutBuild
 
         AbsolutePath payloadDir = (AbsolutePath)outputDirectory / "payload";
         AbsolutePath payloadApplications = payloadDir / "Applications";
-        AbsolutePath finalPkg = (AbsolutePath)outputDirectory / "Froststrap.pkg";
+        AbsolutePath finalPkg = (AbsolutePath)outputDirectory / "Leafstrap.pkg";
 
         Directory.CreateDirectory(payloadApplications);
-        RunProcess("cp", $"-r \"{appPath}\" \"{payloadApplications / "Froststrap.app"}\"");
+        RunProcess("cp", $"-r \"{appPath}\" \"{payloadApplications / "Leafstrap.app"}\"");
 
-        RunProcess("pkgbuild", $"--root \"{payloadDir}\" --install-location / --identifier xyz.froststrap.desktop \"{finalPkg}\"");
+        RunProcess("pkgbuild", $"--root \"{payloadDir}\" --install-location / --identifier io.github.ieavemealone012.leafstrap \"{finalPkg}\"");
 
         Directory.Delete(payloadDir, recursive: true);
 

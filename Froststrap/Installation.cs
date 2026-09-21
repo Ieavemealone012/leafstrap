@@ -148,7 +148,7 @@ del ""%~f0""
 
             string exePath = Path.Combine(newDir, Path.GetFileName(Paths.Process));
 
-            using var key = Registry.CurrentUser.CreateSubKey(@"Software\Froststrap");
+            using var key = Registry.CurrentUser.CreateSubKey(@"Software\Leafstrap");
             key.SetValue("InstallLocation", newDir);
             key.SetValue("AppPath", exePath);
 

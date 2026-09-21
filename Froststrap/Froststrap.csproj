@@ -14,17 +14,17 @@ SPDX-License-Identifier: MPL-2.0
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <Version>2.0.2</Version>
-    <FileVersion>2.0.2</FileVersion>
-    <Company>Froststrap</Company>
+    <Version>1.0.3</Version>
+    <FileVersion>1.0.3</FileVersion>
+    <Company>Ieavemealone012</Company>
     <Product>$(AssemblyName)</Product>
-    <AssemblyName>Froststrap</AssemblyName>
+    <AssemblyName>Leafstrap</AssemblyName>
     <RootNamespace>Froststrap</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<PublishReadyToRun>true</PublishReadyToRun>
 	<NeutralLanguage>en</NeutralLanguage>
-    <Description>Froststrap - A Fishstrap fork</Description>
-    <ApplicationIcon>Froststrap.ico</ApplicationIcon>
+    <Description>Leafstrap - a cross-platform Roblox bootstrapper based on Froststrap</Description>
+    <ApplicationIcon>Leafstrap.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <NoWarn>$(NoWarn);CA1416;CA2007;CA1863;CA1031;CA1019;CA2000;CA1852;CA2216;CA1812;CA5392;SYSLIB1045;SYSLIB1054;CA5351</NoWarn>
     <DefineConstants Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(DefineConstants);WINDOWS</DefineConstants>
@@ -35,16 +35,16 @@ SPDX-License-Identifier: MPL-2.0
   <ItemGroup>
     <AvaloniaResource Include="Resources/**" />
     <AvaloniaResource Include="UI/AppThemes/EditorThemes/*.xshd" />
-    <AvaloniaResource Include="Froststrap.ico" />
-    <AvaloniaResource Include="Froststrap.png" />
-    <AvaloniaResource Include="FroststrapTray.ico" />
+    <AvaloniaResource Include="Leafstrap.ico" />
+    <AvaloniaResource Include="Leafstrap.png" />
+    <AvaloniaResource Include="LeafstrapTray.ico" />
     <AvaloniaResource Include="UI\Elements\Base\BackgroundPanel.axaml" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Froststrap.ico" />
-    <EmbeddedResource Include="Froststrap.png" />
-    <EmbeddedResource Include="FroststrapTray.ico" />
+    <EmbeddedResource Include="Leafstrap.ico" />
+    <EmbeddedResource Include="Leafstrap.png" />
+    <EmbeddedResource Include="LeafstrapTray.ico" />
     <EmbeddedResource Include="Resources\**\*.*" Exclude="Resources\**\*.resx" />
     <EmbeddedResource Include="NLog.config">
       <LogicalName>NLog.config</LogicalName>

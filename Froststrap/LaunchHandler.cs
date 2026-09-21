@@ -88,7 +88,7 @@ namespace Froststrap
                 interlock.Dispose();
                 App.Logger.Info("Found an already existing menu window");
 
-                using var activateEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "Froststrap-ActivateSettingsEvent");
+                using var activateEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "Leafstrap-ActivateSettingsEvent");
                 activateEvent.Set();
 
                 App.Terminate();
@@ -297,7 +297,7 @@ namespace Froststrap
             await Task.Run(() =>
             {
                 App.Logger.Info("Started event waiter");
-                using (EventWaitHandle handle = new(false, EventResetMode.AutoReset, "Froststrap-BackgroundUpdaterKillEvent"))
+                using (EventWaitHandle handle = new(false, EventResetMode.AutoReset, "Leafstrap-BackgroundUpdaterKillEvent"))
                     handle.WaitOne();
 
                 App.Logger.Info("Received close event, killing it all!");

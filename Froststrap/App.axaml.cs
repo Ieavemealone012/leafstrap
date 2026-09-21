@@ -23,12 +23,12 @@ internal partial class App : Application
     private const string MockReleaseTagEnvironmentVariable = "MOCK_RELEASE_TAG";
     private const string MockCurrentVersionEnvironmentVariable = "MOCK_CURRENT_VERSION";
 
-    public const string ProjectName = "Froststrap";
-    public const string ProjectOwner = "Froststrap";
-    public const string ProjectRepository = "Froststrap/Froststrap";
-    public const string ProjectDownloadLink = "https://github.com/Froststrap/Froststrap/releases";
+    public const string ProjectName = "Leafstrap";
+    public const string ProjectOwner = "Ieavemealone012";
+    public const string ProjectRepository = "Ieavemealone012/leafstrap";
+    public const string ProjectDownloadLink = "https://github.com/Ieavemealone012/leafstrap/releases";
     public const string ProjectHelpLink = "https://github.com/bloxstraplabs/bloxstrap/wiki";
-    public const string ProjectSupportLink = "https://github.com/Froststrap/Froststrap/issues/new";
+    public const string ProjectSupportLink = "https://github.com/Ieavemealone012/leafstrap/issues/new";
     public const string ProjectRemoteDataLink = "https://raw.githubusercontent.com/Froststrap/config/refs/heads/main/Data.json";
 
     public static string RobloxPlayerAppName => OperatingSystem.IsMacOS() ? "RobloxPlayer.app" : "RobloxPlayerBeta.exe";
@@ -277,18 +277,18 @@ internal partial class App : Application
         if (!OperatingSystem.IsWindows()) return;
         Logger.Debug("Verifying AUMID creation");
 
-        string iconPath = ExtractIcon("IconFroststrap.ico", "Froststrap.ico");
+        string iconPath = ExtractIcon("IconFroststrap.ico", "Leafstrap.ico");
 
-        const string aumidKeyPath = @"Software\Classes\AppUserModelId\xyz.froststrap.desktop";
+        const string aumidKeyPath = @"Software\Classes\AppUserModelId\io.github.ieavemealone012.leafstrap";
         using var baseKey = Registry.CurrentUser;
 
         bool keyExists = baseKey.GetSubKeyNames().Contains("AppUserModelId") &&
-                         baseKey.OpenSubKey("AppUserModelId")?.GetSubKeyNames().Contains("xyz.froststrap.desktop") == true;
+                         baseKey.OpenSubKey("AppUserModelId")?.GetSubKeyNames().Contains("io.github.ieavemealone012.leafstrap") == true;
 
         if (!keyExists)
         {
             using var aumidKey = baseKey.CreateSubKey(aumidKeyPath);
-            aumidKey.SetValue("DisplayName", "Froststrap");
+            aumidKey.SetValue("DisplayName", ProjectName);
             aumidKey.SetValue("IconBackgroundColor", "FFDDDDDD");
             aumidKey.SetValue("IconUri", iconPath);
             Logger.Info("Created AUMID registry key.");

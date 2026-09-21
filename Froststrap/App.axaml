@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 <Application
     x:Class="Froststrap.App"
-    Name="Froststrap"
+    Name="Leafstrap"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ic="clr-namespace:LucideAvalonia;assembly=LucideAvalonia"
@@ -18,18 +18,18 @@ SPDX-License-Identifier: MPL-2.0
     <Application.Styles>
         <sty:FluentAvaloniaTheme PreferSystemTheme="True" PreferUserAccentColor="True" />
 
-        <StyleInclude Source="avares://Froststrap/UI/Elements/Controls/Hyperlink.axaml" />
-        <StyleInclude Source="avares://Froststrap/UI/Elements/Controls/OptionControl.axaml" />
-        <StyleInclude Source="avares://Froststrap/UI/Elements/Controls/SquareCard.axaml" />
-        <StyleInclude Source="avares://Froststrap/UI/Elements/Controls/Card.axaml" />
-        <StyleInclude Source="avares://Froststrap/UI/Elements/Controls/CardExpander.axaml" />
-        <StyleInclude Source="avares://Froststrap/UI/Elements/Controls/TitleBar.axaml" />
-        <StyleInclude Source="avares://Froststrap/UI/Elements/Controls/CardAction.axaml" />
-        <StyleInclude Source="avares://Froststrap/UI/Elements/Controls/IconButton.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/Elements/Controls/Hyperlink.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/Elements/Controls/OptionControl.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/Elements/Controls/SquareCard.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/Elements/Controls/Card.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/Elements/Controls/CardExpander.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/Elements/Controls/TitleBar.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/Elements/Controls/CardAction.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/Elements/Controls/IconButton.axaml" />
 
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
 
-        <StyleInclude Source="avares://Froststrap/UI/AppThemes/Default.axaml" />
+        <StyleInclude Source="avares://Leafstrap/UI/AppThemes/Default.axaml" />
     </Application.Styles>
 
     <Application.Resources>
@@ -44,9 +44,9 @@ SPDX-License-Identifier: MPL-2.0
             <StaticResource x:Key="ToolTipBackground" ResourceKey="ToolTipBackgroundBrush" />
             <StaticResource x:Key="ToolTipForeground" ResourceKey="ToolTipForegroundBrush" />
 
-            <FontFamily x:Key="Rubik">avares://Froststrap/Resources/Fonts/Rubik-VariableFont_wght.ttf</FontFamily>
-            <FontFamily x:Key="BuilderIconsRegular">avares://Froststrap/Resources/Fonts#BuilderIcons-Regular</FontFamily>
-            <FontFamily x:Key="BuilderIconsFilled">avares://Froststrap/Resources/Fonts#BuilderIcons-Filled</FontFamily>
+            <FontFamily x:Key="Rubik">avares://Leafstrap/Resources/Fonts/Rubik-VariableFont_wght.ttf</FontFamily>
+            <FontFamily x:Key="BuilderIconsRegular">avares://Leafstrap/Resources/Fonts#BuilderIcons-Regular</FontFamily>
+            <FontFamily x:Key="BuilderIconsFilled">avares://Leafstrap/Resources/Fonts#BuilderIcons-Filled</FontFamily>
 
             <converters:StringFormatConverter x:Key="StringFormatConverter" />
             <converters:EnumNameConverter x:Key="EnumNameConverter" />

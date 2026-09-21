@@ -1,36 +1,20 @@
-name: Build (Release)
+name: Build Leafstrap for macOS
 
 on:
-  push:
+  workflow_dispatch:
   pull_request:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: "10.0.x"
-
-      - name: Install NSIS
-        uses: negrutiu/nsis-install@v2
-          
-      - name: Build and package
-        run: dotnet run --project build -- Publish --configuration Release
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: froststrap-release-win-x64-${{ github.sha }}
-          path: .build/publish/*
-
   build-macos:
+    name: macOS ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
+    env:
+      SIGN_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.CERT_P12_BASE64 != '' && secrets.CERT_P12_INSTALLER_BASE64 != '' && secrets.P12_PASSWORD != '' && secrets.DEVELOPER_ID_APP != '' && secrets.DEVELOPER_ID_INSTALLER != '' && secrets.APP_STORE_CONNECT_P8_CONTENT != '' && secrets.APPLE_KEY_ID != '' && secrets.APPLE_ISSUER_ID != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -51,19 +35,19 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Remove stale signing keychain
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: env.SIGN_RELEASE == 'true'
         run: security delete-keychain signing_temp.keychain || true
 
-      - name: Import app cert
+      - name: Import application certificate
         id: import_app_cert
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: env.SIGN_RELEASE == 'true'
         uses: apple-actions/import-codesign-certs@v7
         with:
           p12-file-base64: ${{ secrets.CERT_P12_BASE64 }}
           p12-password: ${{ secrets.P12_PASSWORD }}
 
-      - name: Import installer cert
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Import installer certificate
+        if: env.SIGN_RELEASE == 'true'
         uses: apple-actions/import-codesign-certs@v7
         with:
           p12-file-base64: ${{ secrets.CERT_P12_INSTALLER_BASE64 }}
@@ -71,9 +55,9 @@ jobs:
           create-keychain: false
           keychain-password: ${{ steps.import_app_cert.outputs.keychain-password }}
 
-      - name: Build, sign (if release), and package
+      - name: Build, optionally sign, and package
         env:
-          SIGN: ${{ startsWith(github.ref, 'refs/tags/v') && 'true' || 'false' }}
+          SIGN: ${{ env.SIGN_RELEASE }}
           DEVELOPER_ID_APP: ${{ secrets.DEVELOPER_ID_APP }}
           DEVELOPER_ID_INSTALLER: ${{ secrets.DEVELOPER_ID_INSTALLER }}
           APP_STORE_CONNECT_P8_CONTENT: ${{ secrets.APP_STORE_CONNECT_P8_CONTENT }}
@@ -81,84 +65,42 @@ jobs:
           APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
         run: dotnet run --project build -- Publish --configuration Release
 
-      - name: Rename package for architecture
-        run: mv .build/publish/Froststrap.pkg .build/publish/Froststrap-macos-${{ matrix.arch }}.pkg
+      - name: Name package for architecture
+        run: mv .build/publish/Leafstrap.pkg .build/publish/Leafstrap-macos-${{ matrix.arch }}.pkg
 
       - uses: actions/upload-artifact@v7
         with:
-          name: froststrap-release-macos-${{ matrix.arch }}-${{ github.sha }}
-          path: .build/publish/Froststrap-macos-${{ matrix.arch }}.pkg
-
-  build-linux:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: "10.0.x"
-
-      - name: Build and package binaries
-        run: dotnet run --project build -- Publish --configuration Release
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: froststrap-release-linux-x64-${{ github.sha }}
-          path: .build/publish/*
+          name: leafstrap-macos-${{ matrix.arch }}-${{ github.sha }}
+          path: .build/publish/Leafstrap-macos-${{ matrix.arch }}.pkg
 
   release:
-    needs:
-      - build-windows
-      - build-linux
-      - build-macos
-
+    name: Create draft release
+    needs: build-macos
     runs-on: ubuntu-latest
-
     if: startsWith(github.ref, 'refs/tags/v')
-
     permissions:
       contents: write
 
     steps:
-      - name: Download Windows artifact
+      - name: Download Apple Silicon package
         uses: actions/download-artifact@v7
         with:
-          name: froststrap-release-win-x64-${{ github.sha }}
+          name: leafstrap-macos-arm64-${{ github.sha }}
           path: release
 
-      - name: Download macOS ARM64 artifact
+      - name: Download Intel package
         uses: actions/download-artifact@v7
         with:
-          name: froststrap-release-macos-arm64-${{ github.sha }}
+          name: leafstrap-macos-x64-${{ github.sha }}
           path: release
 
-      - name: Download macOS x64 artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: froststrap-release-macos-x64-${{ github.sha }}
-          path: release
-
-      - name: Download Linux artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: froststrap-release-linux-x64-${{ github.sha }}
-          path: release
-
-      - name: Create release
+      - name: Create draft release
         uses: softprops/action-gh-release@v2
         with:
-          name: Froststrap ${{ github.ref_name }}
+          name: Leafstrap ${{ github.ref_name }}
           prerelease: ${{ contains(github.ref_name, '-') }}
           draft: true
           fail_on_unmatched_files: true
           files: |
-            release/Froststrap-windows-x64.exe
-            release/Froststrap-macos-arm64.pkg
-            release/Froststrap-macos-x64.pkg
-            release/Froststrap-linux-x64.AppImage
-            release/Froststrap-linux-x64.deb
-            release/Froststrap-linux-x64.rpm
+            release/Leafstrap-macos-arm64.pkg
+            release/Leafstrap-macos-x64.pkg

@@ -496,7 +496,7 @@ namespace Froststrap.UI.Elements.Settings.Pages.FastFlags
                 var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
                     Title = "ESave JSON or TXT File",
-                    SuggestedFileName = "FroststrapExport.json",
+                    SuggestedFileName = "LeafstrapExport.json",
                     DefaultExtension = "json",
                     FileTypeChoices =
                     [

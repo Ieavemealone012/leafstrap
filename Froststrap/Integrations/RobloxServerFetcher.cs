@@ -43,7 +43,7 @@ namespace Froststrap.Integrations
 
             _client = new HttpClient(handler);
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.DefaultRequestHeaders.UserAgent.ParseAdd("Roblox/Froststrap");
+            _client.DefaultRequestHeaders.UserAgent.ParseAdd("Roblox/Leafstrap");
         }
 
         private static string BuildRegionKey(string? city, string? country)

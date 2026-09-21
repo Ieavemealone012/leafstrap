@@ -161,7 +161,7 @@ namespace Froststrap.UI.ViewModels.Settings.Mods
         {
             if (mod == null || mod.IsDownloading) return;
 
-            string tempFile = Path.Combine(Path.GetTempPath(), "Froststrap", $"{Guid.NewGuid()}.zip");
+            string tempFile = Path.Combine(Path.GetTempPath(), "Leafstrap", $"{Guid.NewGuid()}.zip");
             try
             {
                 mod.IsDownloading = true;
@@ -307,7 +307,7 @@ namespace Froststrap.UI.ViewModels.Settings.Mods
         {
             await Task.Run(() =>
             {
-                string tempExtract = Path.Combine(Path.GetTempPath(), "Froststrap", Guid.NewGuid().ToString());
+                string tempExtract = Path.Combine(Path.GetTempPath(), "Leafstrap", Guid.NewGuid().ToString());
                 Directory.CreateDirectory(tempExtract);
 
                 try

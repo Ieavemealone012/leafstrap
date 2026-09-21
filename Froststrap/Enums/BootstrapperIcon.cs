@@ -6,7 +6,7 @@ namespace Froststrap.Enums
 {
     internal enum BootstrapperIcon
     {
-        [EnumName(StaticName = "Froststrap")]
+        [EnumName(StaticName = "Leafstrap")]
         IconFroststrap,
         [EnumName(StaticName = "2008")]
         Icon2008,

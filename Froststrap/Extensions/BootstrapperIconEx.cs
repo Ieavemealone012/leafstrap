@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: 2026 Froststrap
+// SPDX-FileCopyrightText: 2026 Froststrap
 //
 // SPDX-License-Identifier: MPL-2.0
 
@@ -79,7 +79,7 @@ namespace Froststrap.Extensions
         private static Bitmap LoadFromResource(string name)
         {
             // Load the ICO file
-            var uri = new Uri($"avares://Froststrap/Resources/{name}.ico");
+            var uri = new Uri($"avares://Leafstrap/Resources/{name}.ico");
             using var stream = AssetLoader.Open(uri);
             return LoadBestIconFromIcoStream(stream);
         }

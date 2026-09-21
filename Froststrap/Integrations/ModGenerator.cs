@@ -123,7 +123,7 @@ namespace Froststrap.Integrations
         private static string GetModGeneratorExePath()
         {
             string assetName = GetModGeneratorAssetName();
-            string cacheDir = Path.Combine(Path.GetTempPath(), "Froststrap", "mod-generator");
+            string cacheDir = Path.Combine(Path.GetTempPath(), "Leafstrap", "mod-generator");
             Directory.CreateDirectory(cacheDir);
             return Path.Combine(cacheDir, assetName);
         }
@@ -561,7 +561,7 @@ namespace Froststrap.Integrations
             Uri clientVersionUrl = UrlBuilder.BuildApiUrl("clientsettingscdn", "v2/client-version/WindowsStudio64", secure: true);
             var clientInfo = await Http.GetJson<ClientVersion>(clientVersionUrl);
             string hash = clientInfo.VersionGuid.Replace("version-", "", StringComparison.Ordinal);
-            string tempPath = Path.Combine(Path.GetTempPath(), "Froststrap");
+            string tempPath = Path.Combine(Path.GetTempPath(), "Leafstrap");
             Directory.CreateDirectory(tempPath);
 
             async Task<string> DownloadOne(string type)

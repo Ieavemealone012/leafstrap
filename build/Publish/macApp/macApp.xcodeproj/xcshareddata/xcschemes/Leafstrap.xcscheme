@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "75521DB3303B33DD00747566"
-               BuildableName = "Froststrap.app"
-               BlueprintName = "Froststrap"
+               BuildableName = "Leafstrap.app"
+               BlueprintName = "Leafstrap"
                ReferencedContainer = "container:macApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -51,8 +51,8 @@
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "75521DB3303B33DD00747566"
-                     BuildableName = "Froststrap.app"
-                     BlueprintName = "Froststrap"
+                     BuildableName = "Leafstrap.app"
+                     BlueprintName = "Leafstrap"
                      ReferencedContainer = "container:macApp.xcodeproj">
                   </BuildableReference>
                </EnvironmentBuildable>
@@ -64,8 +64,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "75521DB3303B33DD00747566"
-            BuildableName = "Froststrap.app"
-            BlueprintName = "Froststrap"
+            BuildableName = "Leafstrap.app"
+            BlueprintName = "Leafstrap"
             ReferencedContainer = "container:macApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -81,8 +81,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "75521DB3303B33DD00747566"
-            BuildableName = "Froststrap.app"
-            BlueprintName = "Froststrap"
+            BuildableName = "Leafstrap.app"
+            BlueprintName = "Leafstrap"
             ReferencedContainer = "container:macApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
