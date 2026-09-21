@@ -18,7 +18,7 @@ SPDX-License-Identifier: MPL-2.0
                      xmlns:lucideEnums="clr-namespace:LucideAvalonia.Enum;assembly=LucideAvalonia"
                      xmlns:enums="clr-namespace:Froststrap.Enums"
                      x:DataType="vm:LaunchMenuViewModel"
-                     Title="Froststrap"
+                     Title="Leafstrap"
                      Width="420"
                      SizeToContent="Height"
                      CanResize="False"

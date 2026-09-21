@@ -13,7 +13,7 @@ SPDX-License-Identifier: MPL-2.0
                          x:DataType="vm:TwentyFiveDialogViewModel"
                          Width="576" Height="482"
                          CanResize="False"
-                         Title="Froststrap"
+                         Title="Leafstrap"
                          WindowDecorations="None"
                          WindowStartupLocation="CenterScreen"
                          ExtendClientAreaToDecorationsHint="True"

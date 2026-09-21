@@ -257,7 +257,7 @@ namespace Froststrap.UI.ViewModels.Onboarding
             {
                 Title = "Export Gradient",
                 FileTypeChoices = [new FilePickerFileType("JSON Files") { Patterns = JsonPatterns }],
-                SuggestedFileName = "Froststrap Gradient Background.json"
+                SuggestedFileName = "Leafstrap Gradient Background.json"
             });
 
             if (file == null) return;

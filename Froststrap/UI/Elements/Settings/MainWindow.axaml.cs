@@ -82,21 +82,8 @@ namespace Froststrap.UI.Elements.Settings
             LoadState();
 
 
-            App.RemoteData.Subscribe((_, _) => Dispatcher.UIThread.Post(() =>
-            {
-                var data = App.RemoteData.Prop;
-                if (data is null) return;
-
-                bool show = data.AlertEnabled && !string.IsNullOrWhiteSpace(data.AlertContent);
-
-                AlertBar.IsOpen = show;
-
-                if (show)
-                {
-                    AlertBar.Message = data.AlertContent;
-                    AlertBar.Severity = data.AlertSeverity;
-                }
-            }));
+            // Leafstrap releases do not display Froststrap's remotely managed announcement banner.
+            AlertBar.IsOpen = false;
 
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
