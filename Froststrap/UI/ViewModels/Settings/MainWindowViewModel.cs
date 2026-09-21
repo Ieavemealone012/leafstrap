@@ -156,7 +156,7 @@ namespace Froststrap.UI.ViewModels.Settings
             NavigateToIntegrationsCommand = new RelayCommand(() => Navigate("integrations", Strings.Menu_Integrations_Title, Strings.Menu_Integrations_Description, new IntegrationsViewModel()));
             NavigateToBehaviourCommand = new RelayCommand(() => Navigate("behaviour", Strings.Menu_Behaviour_Title, Strings.Menu_Behaviour_Description, new BehaviourViewModel()));
             NavigateToLinuxSettingsCommand = new RelayCommand(() => Navigate("linuxsettings", Strings.Menu_LinuxSettings_Title, null!, new LinuxSettingsViewModel()));
-            NavigateToPresetModsCommand = new RelayCommand(() => Navigate("mods", Strings.Menu_Mods_Title, Strings.Menu_Mods_InfoBar, new ModsViewModel()));
+            NavigateToPresetModsCommand = new RelayCommand(() => Navigate("mods", Strings.Menu_PresetMods_Title, Strings.Menu_PresetMods_Description, new ModsPresetsViewModel()));
             NavigateToFastFlagsCommand = new RelayCommand(() =>
             {
                 var dialogService = new FastFlagsDialogService(this);

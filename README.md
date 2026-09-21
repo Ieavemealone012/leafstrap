@@ -30,7 +30,7 @@ The included GitHub Actions workflow is the recommended build path because creat
 2. Open **Actions → Build Leafstrap for macOS → Run workflow**.
 3. Download both packages from the completed workflow's **Artifacts** section.
 
-Creating a tag such as `v1.0.3-macos.1` also creates a draft GitHub release containing both packages. If all Apple signing secrets documented in [MACOS-BUILD.md](./MACOS-BUILD.md) are configured, tagged builds are signed and notarized automatically.
+Creating a tag such as `v1.0.4` also creates a draft GitHub release containing both packages. If all Apple signing secrets documented in [MACOS-BUILD.md](./MACOS-BUILD.md) are configured, tagged builds are signed and notarized automatically.
 
 ## Highlights
 

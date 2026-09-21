@@ -21,7 +21,7 @@ SPDX-License-Identifier: MPL-2.0
 
     <ScrollViewer>
         <StackPanel Margin="14">
-            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto, Auto">
+            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto">
                 <controls:CardAction Grid.Column="0" Margin="0,0,4,0"
                                      Header="{x:Static resources:Strings.Menu_CommunityMods_Title}"
                                      Icon="House"
@@ -40,12 +40,7 @@ SPDX-License-Identifier: MPL-2.0
                                      Description="{x:Static resources:Strings.Menu_ModGenerator_Description}"
                                      Command="{Binding OpenModGeneratorCommand}"/>
 
-                <controls:CardAction Grid.Row="1" Grid.ColumnSpan="3"
-                                     Header="{x:Static resources:Strings.Menu_PresetMods_OpenModsFolder}"
-                                     Icon="FolderOpen"
-                                     Command="{Binding OpenModsFolderCommand}"/>
-
-                <controls:CardAction Grid.Row="2" Grid.ColumnSpan="3" IsVisible="{x:Static gv:GlobalViewModel.IsWindows}"
+                <controls:CardAction Grid.Row="1" Grid.ColumnSpan="3" IsVisible="{x:Static gv:GlobalViewModel.IsWindows}"
                                      Header="{x:Static resources:Strings.Menu_PresetMods_Misc_CompatibilitySettings_Title}"
                                      Icon="ShieldCheck"
                                      Description="{Binding Source={x:Static resources:Strings.Menu_PresetMods_Misc_CompatibilitySettings_Description}, Converter={StaticResource StringFormatConverter}, ConverterParameter='https://devblogs.microsoft.com/directx/demystifying-full-screen-optimizations/'}"

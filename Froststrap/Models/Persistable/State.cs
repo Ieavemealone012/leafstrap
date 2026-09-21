@@ -10,6 +10,8 @@ namespace Froststrap.Models.Persistable
 
         public bool LeafstrapThemeMigrationDone { get; set; }
 
+        public bool SystemDefaultThemeMigrationDone { get; set; }
+
         public bool PromptWebView2Install { get; set; } = true;
 
         public string? LastPage { get; set; } = null!;

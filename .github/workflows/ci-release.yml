@@ -71,9 +71,10 @@ jobs:
       - name: Verify installer payload
         run: |
           package=".build/publish/Leafstrap-macos-${{ matrix.arch }}.pkg"
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Froststrap/Froststrap.csproj | head -1)
           pkgutil --payload-files "$package" | grep -q "Leafstrap.app/Contents/Info.plist"
           pkgutil --expand "$package" expanded-package
-          grep -q 'version="1.0.3"' expanded-package/PackageInfo
+          grep -q "version=\"$version\"" expanded-package/PackageInfo
           grep -q 'install-location="/Applications"' expanded-package/PackageInfo
 
       - uses: actions/upload-artifact@v7

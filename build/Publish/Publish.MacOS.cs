@@ -3,6 +3,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Fallout.Common;
 using Fallout.Common.IO;
 using Serilog;
@@ -10,7 +11,6 @@ using Serilog;
 public partial class Build : FalloutBuild
 {
     const string MacPackageIdentifier = "io.github.ieavemealone012.leafstrap";
-    const string MacPackageVersion = "1.0.3";
 
     void PublishMacOS(string outputDirectory)
     {
@@ -173,12 +173,15 @@ public partial class Build : FalloutBuild
         // package with the same identifier has no newer software to install.
         // Component packaging is Apple's supported path for a single app and
         // makes /Applications the unambiguous destination.
+        var projectFile = XDocument.Load(GitRoot / "Froststrap" / "Froststrap.csproj");
+        string packageVersion = projectFile.Descendants("Version").First().Value;
+
         RunProcess(
             "pkgbuild",
             $"--component \"{appPath}\" " +
             "--install-location /Applications " +
             $"--identifier {MacPackageIdentifier} " +
-            $"--version {MacPackageVersion} " +
+            $"--version {packageVersion} " +
             $"\"{packagePath}\"");
     }
 }

@@ -294,39 +294,23 @@ exit";
         }
     }
 
-    private static async Task<bool> ApplyMacOSUpdate(string updatePath)
+    private static Task<bool> ApplyMacOSUpdate(string updatePath)
     {
         App.Logger.Info($"Applying macOS update: {updatePath}");
 
         try
         {
-            string scriptPath = Path.Combine(Paths.TempUpdates, "update_runner.sh");
-            string appName = App.ProjectName;
-
-            string scriptContent = $@"#!/bin/bash
-set -e
-
-echo ""Waiting for {appName} to exit...""
-sleep 2
-
-echo ""Installing update via package...""
-sudo installer -pkg ""{updatePath}"" -target /
-
-echo ""Starting {appName}...""
-open /Applications/{appName}.app
-
-exit";
-
-            await File.WriteAllTextAsync(scriptPath, scriptContent);
-            await Utility.Threading.RunAsync("chmod", $"+x \"{scriptPath}\"");
-            await Utility.Threading.RunAsync(scriptPath, "");
+            // Launch the normal macOS Installer UI so authorization is handled
+            // by the operating system. A background `sudo installer` process
+            // cannot reliably request a password and would stall the update.
+            Utility.Threading.ShellExecute(updatePath);
             App.Terminate();
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             App.Logger.Error(ex, $"Failed to apply macOS update: {ex.Message}");
-            return false;
+            return Task.FromResult(false);
         }
     }
 

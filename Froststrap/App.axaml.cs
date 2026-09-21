@@ -558,12 +558,14 @@ internal partial class App : Application
         Settings.Load();
         State.Load();
 
-        // Existing macOS test installs used Froststrap's system-blue default.
-        // Select Leafstrap once, then preserve whatever theme the user chooses afterward.
-        if (!State.Prop.LeafstrapThemeMigrationDone)
+        // Early macOS test packages forced Leafstrap Green. Restore the intended
+        // System Default once for those installs, then preserve the user's choice.
+        if (!State.Prop.SystemDefaultThemeMigrationDone)
         {
-            Settings.Prop.Theme = Theme.Leafstrap;
-            State.Prop.LeafstrapThemeMigrationDone = true;
+            if (State.Prop.LeafstrapThemeMigrationDone && Settings.Prop.Theme == Theme.Leafstrap)
+                Settings.Prop.Theme = Theme.Default;
+
+            State.Prop.SystemDefaultThemeMigrationDone = true;
             Settings.Save();
             State.Save();
         }
