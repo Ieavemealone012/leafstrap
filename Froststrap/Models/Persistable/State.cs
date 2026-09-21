@@ -8,6 +8,8 @@ namespace Froststrap.Models.Persistable
     {
         public bool TestModeWarningShown { get; set; }
 
+        public bool LeafstrapThemeMigrationDone { get; set; }
+
         public bool PromptWebView2Install { get; set; } = true;
 
         public string? LastPage { get; set; } = null!;

@@ -79,7 +79,7 @@ namespace Froststrap.Models.Persistable
         public double BackgroundOpacity { get; set; } = 1.0;
         public string BootstrapperTitle { get; set; } = App.ProjectName;
         public string BootstrapperIconCustomLocation { get; set; } = "";
-        public Theme Theme { get; set; } = Theme.Default;
+        public Theme Theme { get; set; } = Theme.Leafstrap;
         public bool EnableWindowManipulation { get; set; }
         public RobloxIcon RobloxIcon { get; set; } = RobloxIcon.IconDefault;
         public string RobloxTitle { get; set; } = "Roblox";

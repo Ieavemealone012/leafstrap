@@ -24,8 +24,8 @@ SPDX-License-Identifier: MPL-2.0
     Title="{x:Static resources:Strings.Menu_Title}"
     Width="1125"
     Height="700"
-    MinWidth="750"
-    MinHeight="415"
+    MinWidth="900"
+    MinHeight="600"
     x:DataType="vm:MainWindowViewModel"
     CanResize="True"
     WindowStartupLocation="CenterScreen">
@@ -40,7 +40,7 @@ SPDX-License-Identifier: MPL-2.0
             IsBackButtonVisible="False"
             IsSettingsVisible="False"
             ItemInvoked="NavView_ItemInvoked"
-            OpenPaneLength="220"
+            OpenPaneLength="235"
             PaneDisplayMode="Left">
 
             <ui:FANavigationView.PaneToggleRowContent>
@@ -88,23 +88,21 @@ SPDX-License-Identifier: MPL-2.0
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
-                <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_QuickPlay_Title}" Tag="quickplay">
-                    <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="Gamepad2" />
-                    </ui:FANavigationViewItem.Icon>
-                </ui:FANavigationViewItem>
-
                 <ui:FANavigationViewItem Content="{x:Static resources:Strings.Common_Deployment}" Tag="channels">
                     <ui:FANavigationViewItem.Icon>
                         <ic:Lucide Icon="HardDriveUpload" />
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
-                <ui:FANavigationViewItemSeparator />
-
-                <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_PresetMods_Title}" Tag="mods">
+                <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_Mods_Title}" Tag="mods">
                     <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="BookOpen" />
+                        <ic:Lucide Icon="SlidersVertical" />
+                    </ui:FANavigationViewItem.Icon>
+                </ui:FANavigationViewItem>
+
+                <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_FastFlags_Title}" Tag="fastflags">
+                    <ui:FANavigationViewItem.Icon>
+                        <ic:Lucide Icon="Flag" />
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
@@ -114,31 +112,15 @@ SPDX-License-Identifier: MPL-2.0
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
-                <ui:FANavigationViewItemSeparator />
-
-                <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_FastFlags_Title}" Tag="fastflags">
-                    <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="Flag" />
-                    </ui:FANavigationViewItem.Icon>
-                </ui:FANavigationViewItem>
-
-                <ui:FANavigationViewItem Name="gbs" Content="{x:Static resources:Strings.Menu_GlobalSettings_Title}" Tag="globalsettings">
-                    <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="PenLine" />
-                    </ui:FANavigationViewItem.Icon>
-                </ui:FANavigationViewItem>
-
-                <ui:FANavigationViewItem Name="linux" IsVisible="{x:Static gv:GlobalViewModel.IsLinux}" Content="{x:Static resources:Strings.Menu_LinuxSettings_Title}" Tag="linuxsettings">
-                    <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="Settings" />
-                    </ui:FANavigationViewItem.Icon>
-                </ui:FANavigationViewItem>
-
-                <ui:FANavigationViewItemSeparator />
-
                 <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_RegionSelector_Title}" Tag="regionselector">
                     <ui:FANavigationViewItem.Icon>
                         <ic:Lucide Icon="Globe" />
+                    </ui:FANavigationViewItem.Icon>
+                </ui:FANavigationViewItem>
+
+                <ui:FANavigationViewItem Name="gbs" Content="Roblox Settings" Tag="globalsettings">
+                    <ui:FANavigationViewItem.Icon>
+                        <ic:Lucide Icon="PanelsTopLeft" />
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
@@ -149,13 +131,23 @@ SPDX-License-Identifier: MPL-2.0
                 </ui:FANavigationViewItem>
             </ui:FANavigationView.MenuItems>
 
-            <ui:FANavigationView.FooterMenuItems>
-                <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_About_Title}" Tag="about">
-                    <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="CircleAlert" />
-                    </ui:FANavigationViewItem.Icon>
-                </ui:FANavigationViewItem>
-            </ui:FANavigationView.FooterMenuItems>
+            <ui:FANavigationView.PaneFooter>
+                <StackPanel Margin="4,0,4,4" Spacing="2">
+                    <local:AccountSelectorView />
+                    <Button Height="40"
+                            Padding="10,0"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Command="{Binding OpenAboutCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <ic:Lucide Icon="CircleAlert" Width="18" Height="18" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Static resources:Strings.Menu_About_Title}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </ui:FANavigationView.PaneFooter>
 
             <ui:FANavigationView.Content>
                 <Grid RowDefinitions="Auto,*">
@@ -165,13 +157,6 @@ SPDX-License-Identifier: MPL-2.0
                         <StackPanel>
                             <StackPanel Margin="18">
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                    <ic:Lucide
-                                        Icon="{Binding CurrentPageIcon}"
-                                        Width="26"
-                                        Height="26"
-                                        Margin="0,0,8,0"
-                                        VerticalAlignment="Bottom" />
-
                                     <ItemsControl
                                         IsVisible="{Binding HasBreadcrumbs}"
                                         ItemsSource="{Binding BreadcrumbItems}">
@@ -267,10 +252,16 @@ SPDX-License-Identifier: MPL-2.0
             BorderBrush="{DynamicResource ControlStrokeColorDefault}"
             BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto" ColumnSpacing="8">
-                <local:AccountSelectorView
-                    x:Name="AccountSelectorView"
-                    Grid.Column="0"
-                    Margin="8,0,0,0" />
+                <StackPanel Grid.Column="0"
+                            Margin="16,0,0,0"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            VerticalAlignment="Center">
+                    <ToggleSwitch IsChecked="{Binding TestModeEnabled, Mode=TwoWay}" />
+                    <TextBlock VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Text="{x:Static resources:Strings.Menu_TestMode}" />
+                </StackPanel>
                 <controls:IconButton Grid.Column="2"
                                      FontWeight="SemiBold"
                                      Height="36"

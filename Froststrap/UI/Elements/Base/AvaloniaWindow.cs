@@ -137,7 +137,9 @@ namespace Froststrap.UI.Elements.Base
             if (faTheme != null)
             {
                 faTheme.PreferSystemTheme = false;
-                faTheme.PreferUserAccentColor = true;
+                bool isLeafstrapTheme = finalTheme == Enums.Theme.Leafstrap;
+                faTheme.PreferUserAccentColor = !isLeafstrapTheme;
+                faTheme.CustomAccentColor = isLeafstrapTheme ? Color.Parse("#20E63A") : null;
             }
 
             if (_activeThemeDictionary != null)

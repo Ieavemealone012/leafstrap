@@ -11,6 +11,7 @@ namespace Froststrap.Enums
         Dark,
         Light,
         [EnumName(FromTranslation = "Common.Custom")]
-        Custom
+        Custom,
+        Leafstrap
     }
 }

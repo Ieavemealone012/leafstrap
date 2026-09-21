@@ -16,6 +16,7 @@ using FluentAvalonia.UI.Controls;
 using Froststrap.UI.Elements.Controls;
 using Froststrap.UI.Utility;
 using Froststrap.UI.ViewModels.Settings;
+using Froststrap.UI.ViewModels.Settings.Mods;
 using LucideAvalonia.Enum;
 using System.ComponentModel;
 
@@ -195,10 +196,10 @@ namespace Froststrap.UI.Elements.Settings
             ["integrations"] = (Strings.Menu_Integrations_Title, LucideIconNames.Plus),
             ["behaviour"] = (Strings.Menu_Behaviour_Title, LucideIconNames.Play),
             ["linuxsettings"] = (Strings.Menu_LinuxSettings_Title, LucideIconNames.Settings),
-            ["mods"] = (Strings.Menu_PresetMods_Title, LucideIconNames.BookOpen),
+            ["mods"] = (Strings.Menu_Mods_Title, LucideIconNames.Wrench),
             ["fastflags"] = (Strings.Menu_FastFlags_Title, LucideIconNames.Flag),
             ["appearance"] = (Strings.Menu_Appearance_Title, LucideIconNames.Palette),
-            ["globalsettings"] = (Strings.Menu_GlobalSettings_Title, LucideIconNames.PenLine),
+            ["globalsettings"] = ("Roblox Settings", LucideIconNames.Settings),
             ["shortcuts"] = (Strings.Common_Shortcuts, LucideIconNames.Link2),
             ["channels"] = (Strings.Common_Deployment, LucideIconNames.HardDriveUpload)
         };
@@ -541,6 +542,7 @@ namespace Froststrap.UI.Elements.Settings
                 "appearance",
                 "fastflags",
                 "globalsettings",
+                "regionselector",
                 "shortcuts"
             };
 
@@ -576,10 +578,11 @@ namespace Froststrap.UI.Elements.Settings
                             "integrations" => new IntegrationsViewModel(),
                             "behaviour" => new BehaviourViewModel(),
                             "linuxsettings" => new LinuxSettingsViewModel(),
-                            "mods" => new ModsPresetsViewModel(),
+                            "mods" => new ModsViewModel(),
                             "fastflags" => new FastFlagsViewModel(),
                             "appearance" => new AppearanceViewModel(),
                             "globalsettings" => new GlobalSettingsViewModel(),
+                            "regionselector" => new RegionSelectorViewModel(),
                             "shortcuts" => new ShortcutsViewModel(),
                             "channels" => new ChannelViewModel(),
                             _ => null

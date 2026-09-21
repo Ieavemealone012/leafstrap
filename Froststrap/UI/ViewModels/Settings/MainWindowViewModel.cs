@@ -156,7 +156,7 @@ namespace Froststrap.UI.ViewModels.Settings
             NavigateToIntegrationsCommand = new RelayCommand(() => Navigate("integrations", Strings.Menu_Integrations_Title, Strings.Menu_Integrations_Description, new IntegrationsViewModel()));
             NavigateToBehaviourCommand = new RelayCommand(() => Navigate("behaviour", Strings.Menu_Behaviour_Title, Strings.Menu_Behaviour_Description, new BehaviourViewModel()));
             NavigateToLinuxSettingsCommand = new RelayCommand(() => Navigate("linuxsettings", Strings.Menu_LinuxSettings_Title, null!, new LinuxSettingsViewModel()));
-            NavigateToPresetModsCommand = new RelayCommand(() => Navigate("mods", Strings.Menu_PresetMods_Title, Strings.Menu_PresetMods_Description, new ModsPresetsViewModel()));
+            NavigateToPresetModsCommand = new RelayCommand(() => Navigate("mods", Strings.Menu_Mods_Title, Strings.Menu_Mods_InfoBar, new ModsViewModel()));
             NavigateToFastFlagsCommand = new RelayCommand(() =>
             {
                 var dialogService = new FastFlagsDialogService(this);
@@ -259,7 +259,7 @@ namespace Froststrap.UI.ViewModels.Settings
                         NavigateToLinuxSettingsCommand.Execute(null);
                     break;
                 case "Froststrap.UI.ViewModels.Settings.Mods.ModsViewModel":
-                    NavigateToMyModsCommand.Execute(null);
+                    NavigateToPresetModsCommand.Execute(null);
                     break;
                 case "Froststrap.UI.ViewModels.Settings.FastFlagsViewModel":
                     NavigateToFastFlagsCommand.Execute(null);
@@ -430,6 +430,37 @@ namespace Froststrap.UI.ViewModels.Settings
             Process.Start(startInfo);
             App.FrostRPC = null;
             CloseWindow();
+        }
+
+        public bool TestModeEnabled
+        {
+            get => App.LaunchSettings.TestModeFlag.Active;
+            set
+            {
+                if (value && !App.State.Prop.TestModeWarningShown)
+                    _ = HandleTestModeConfirmation();
+                else
+                {
+                    App.LaunchSettings.TestModeFlag.Active = value;
+                    OnPropertyChanged(nameof(TestModeEnabled));
+                }
+            }
+        }
+
+        private async Task HandleTestModeConfirmation()
+        {
+            var result = await Frontend.ShowMessageBox(
+                Strings.Menu_TestMode_Prompt,
+                MessageBoxImage.Information,
+                MessageBoxButton.YesNo);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                App.State.Prop.TestModeWarningShown = true;
+                App.LaunchSettings.TestModeFlag.Active = true;
+            }
+
+            OnPropertyChanged(nameof(TestModeEnabled));
         }
 
         private void HandleBreadcrumbItemClicked(BreadcrumbItemModel? item)
