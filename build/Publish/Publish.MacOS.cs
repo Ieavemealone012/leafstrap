@@ -9,6 +9,9 @@ using Serilog;
 
 public partial class Build : FalloutBuild
 {
+    const string MacPackageIdentifier = "io.github.ieavemealone012.leafstrap";
+    const string MacPackageVersion = "1.0.3";
+
     void PublishMacOS(string outputDirectory)
     {
         AbsolutePath virtualbackendBuildRoot = GitRoot / "backend" / "virtualdisplay" / ".build";
@@ -101,8 +104,6 @@ public partial class Build : FalloutBuild
         string appleKeyId = EnvironmentInfo.GetVariable<string>("APPLE_KEY_ID");
         string appleIssuerId = EnvironmentInfo.GetVariable<string>("APPLE_ISSUER_ID");
 
-        AbsolutePath payloadDir = (AbsolutePath)outputDirectory / "payload";
-        AbsolutePath payloadApplications = payloadDir / "Applications";
         AbsolutePath unsignedPkg = (AbsolutePath)outputDirectory / "Leafstrap-unsigned.pkg";
         AbsolutePath finalPkg = (AbsolutePath)outputDirectory / "Leafstrap.pkg";
 
@@ -110,10 +111,7 @@ public partial class Build : FalloutBuild
         RunProcess("codesign", $"--force --deep --options runtime --entitlements \"{entitlementsPath}\" --sign \"{developerIdApp}\" \"{appPath}\"");
         RunProcess("codesign", $"--verify --verbose=4 \"{appPath}\"");
 
-        Directory.CreateDirectory(payloadApplications);
-        RunProcess("cp", $"-r \"{appPath}\" \"{payloadApplications / "Leafstrap.app"}\"");
-
-        RunProcess("pkgbuild", $"--root \"{payloadDir}\" --install-location / --identifier io.github.ieavemealone012.leafstrap \"{unsignedPkg}\"");
+        BuildMacPkg(appPath, unsignedPkg);
 
         Log.Information("Signing PKG with {DeveloperIdInstaller}", developerIdInstaller);
         RunProcess("productsign", $"--sign \"{developerIdInstaller}\" \"{unsignedPkg}\" \"{finalPkg}\"");
@@ -152,7 +150,6 @@ public partial class Build : FalloutBuild
         RunProcess("xcrun", $"stapler staple \"{finalPkg}\"");
 
         File.Delete(keyPath);
-        Directory.Delete(payloadDir, recursive: true);
         File.Delete(unsignedPkg);
 
         Log.Information("macOS build complete: {PkgPath}", finalPkg);
@@ -162,17 +159,26 @@ public partial class Build : FalloutBuild
     {
         Log.Information("Building unsigned PKG (skipping signing)");
 
-        AbsolutePath payloadDir = (AbsolutePath)outputDirectory / "payload";
-        AbsolutePath payloadApplications = payloadDir / "Applications";
         AbsolutePath finalPkg = (AbsolutePath)outputDirectory / "Leafstrap.pkg";
 
-        Directory.CreateDirectory(payloadApplications);
-        RunProcess("cp", $"-r \"{appPath}\" \"{payloadApplications / "Leafstrap.app"}\"");
-
-        RunProcess("pkgbuild", $"--root \"{payloadDir}\" --install-location / --identifier io.github.ieavemealone012.leafstrap \"{finalPkg}\"");
-
-        Directory.Delete(payloadDir, recursive: true);
+        BuildMacPkg(appPath, finalPkg);
 
         Log.Information("macOS build complete: {PkgPath}", finalPkg);
+    }
+
+    void BuildMacPkg(AbsolutePath appPath, AbsolutePath packagePath)
+    {
+        // An explicit package version is required for reliable upgrades and
+        // reinstalls. Without it, Installer may decide that an earlier test
+        // package with the same identifier has no newer software to install.
+        // Component packaging is Apple's supported path for a single app and
+        // makes /Applications the unambiguous destination.
+        RunProcess(
+            "pkgbuild",
+            $"--component \"{appPath}\" " +
+            "--install-location /Applications " +
+            $"--identifier {MacPackageIdentifier} " +
+            $"--version {MacPackageVersion} " +
+            $"\"{packagePath}\"");
     }
 }
