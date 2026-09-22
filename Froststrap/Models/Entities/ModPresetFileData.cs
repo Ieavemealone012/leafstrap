@@ -20,7 +20,10 @@ namespace Froststrap.Models.Entities
 
         public ModPresetFileData(string contentPath, string resource)
         {
-            if (OperatingSystem.IsLinux())
+            // Windows-style preset paths must be normalized on every Unix-like
+            // platform. On macOS, a backslash is a valid filename character,
+            // so leaving these untouched prevents Roblox from finding the mod.
+            if (!OperatingSystem.IsWindows())
             {
                 var parts = contentPath.Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries);
                 FilePath = Path.Combine(parts);
