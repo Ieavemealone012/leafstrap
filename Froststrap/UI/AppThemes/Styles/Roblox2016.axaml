@@ -1,0 +1,13 @@
+<!--
+SPDX-FileCopyrightText: 2026 Leafstrap contributors
+SPDX-License-Identifier: MPL-2.0
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style Selector="ProgressBar.Square">
+        <Setter Property="Background" Value="#D7D7D7" />
+        <Setter Property="Foreground" Value="#00A2FF" />
+        <Setter Property="BorderBrush" Value="#B8B8B8" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+</Styles>

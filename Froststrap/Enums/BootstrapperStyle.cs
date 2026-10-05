@@ -7,6 +7,8 @@ namespace Froststrap.Enums
     internal enum BootstrapperStyle
     {
         ClassicFluentDialog,
+        [EnumName(StaticName = "Roblox (2016)")]
+        Roblox2016Dialog,
         TwentyFiveDialog,
         ByfronDialog,
         ModernDialog,

@@ -128,6 +128,7 @@ namespace Froststrap.UI
             return style switch
             {
                 BootstrapperStyle.ClassicFluentDialog => new ClassicFluentDialog(),
+                BootstrapperStyle.Roblox2016Dialog => new Roblox2016Dialog(),
                 BootstrapperStyle.ByfronDialog => new ByfronDialog(),
                 BootstrapperStyle.ModernDialog => new ModernDialog(),
                 BootstrapperStyle.TwentyFiveDialog => new TwentyFiveDialog(),

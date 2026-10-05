@@ -1,0 +1,14 @@
+<!--
+SPDX-FileCopyrightText: 2026 Leafstrap contributors
+SPDX-License-Identifier: MPL-2.0
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="NewTextEditorBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NewTextEditorForeground" Color="#191919" />
+    <SolidColorBrush x:Key="NewTextEditorLink" Color="#00A2FF" />
+    <SolidColorBrush x:Key="CompletionListBackgroundBrush" Color="#F2F2F2" />
+    <SolidColorBrush x:Key="NormalDarkAndLightBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ApplicationBackgroundColor" Color="#E3E3E3" />
+    <SolidColorBrush x:Key="NotificationBackgroundColor" Color="#FFFFFF" />
+</ResourceDictionary>

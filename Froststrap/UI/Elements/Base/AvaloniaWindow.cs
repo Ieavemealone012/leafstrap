@@ -129,17 +129,26 @@ namespace Froststrap.UI.Elements.Base
             var finalTheme = App.Settings.Prop.Theme.GetFinal();
             string themeName = Enum.GetName(finalTheme) ?? "Dark";
 
-            Application.Current.RequestedThemeVariant = finalTheme == Enums.Theme.Light
+            bool useLightBase = finalTheme is Enums.Theme.Light or Enums.Theme.Roblox2016;
+            Application.Current.RequestedThemeVariant = useLightBase
                 ? ThemeVariant.Light
                 : ThemeVariant.Dark;
+
+            Application.Current.Resources["ContentControlThemeFontFamily"] =
+                finalTheme == Enums.Theme.Roblox2016
+                    ? (Avalonia.Media.FontFamily)Application.Current.Resources["SourceSans3"]!
+                    : Avalonia.Media.FontFamily.Default;
 
             var faTheme = Application.Current.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
             if (faTheme != null)
             {
                 faTheme.PreferSystemTheme = false;
                 bool isLeafstrapTheme = finalTheme == Enums.Theme.Leafstrap;
-                faTheme.PreferUserAccentColor = !isLeafstrapTheme;
-                faTheme.CustomAccentColor = isLeafstrapTheme ? Color.Parse("#20E63A") : null;
+                bool isRoblox2016Theme = finalTheme == Enums.Theme.Roblox2016;
+                faTheme.PreferUserAccentColor = !isLeafstrapTheme && !isRoblox2016Theme;
+                faTheme.CustomAccentColor = isLeafstrapTheme
+                    ? Color.Parse("#20E63A")
+                    : isRoblox2016Theme ? Color.Parse("#00A2FF") : null;
             }
 
             if (_activeThemeDictionary != null)

@@ -13,6 +13,7 @@ namespace Froststrap.Extensions
             BootstrapperStyle.FluentAeroDialog,
             BootstrapperStyle.FluentDialog,
             BootstrapperStyle.ClassicFluentDialog,
+            BootstrapperStyle.Roblox2016Dialog,
             BootstrapperStyle.TwentyFiveDialog,
             BootstrapperStyle.ByfronDialog,
             BootstrapperStyle.ModernDialog,

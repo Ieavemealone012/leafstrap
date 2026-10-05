@@ -1,0 +1,47 @@
+<!--
+SPDX-FileCopyrightText: 2026 Leafstrap contributors
+SPDX-License-Identifier: MPL-2.0
+-->
+<base:AvaloniaDialogBase xmlns="https://github.com/avaloniaui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:vm="using:Froststrap.UI.ViewModels.Bootstrapper"
+                         xmlns:base="clr-namespace:Froststrap.UI.Elements.Bootstrapper.Base"
+                         xmlns:controls="clr-namespace:Froststrap.UI.Elements.Controls"
+                         x:Class="Froststrap.UI.Elements.Bootstrapper.Roblox2016Dialog"
+                         x:DataType="vm:BootstrapperDialogViewModel"
+                         Width="440" Height="205"
+                         CanResize="False"
+                         Title="Leafstrap"
+                         FontFamily="{StaticResource SourceSans3}"
+                         WindowStartupLocation="CenterScreen"
+                         ExtendClientAreaToDecorationsHint="True"
+                         Background="#E3E3E3">
+    <Border BorderBrush="#B8B8B8" BorderThickness="1" Background="#FFFFFF">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <controls:TitleBar Grid.Row="0" Padding="8" Icon="{Binding Icon}" Title="{Binding Title}"
+                               ShowMinimize="False" ShowMaximize="False" ShowClose="False" />
+
+            <Grid Grid.Row="1" Margin="20,10,20,14" ColumnDefinitions="Auto,*">
+                <Border Width="56" Height="56" Background="#F2F2F2" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="3">
+                    <Image Width="44" Height="44" Source="{Binding Icon}" RenderOptions.BitmapInterpolationMode="HighQuality" />
+                </Border>
+                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Foreground="#191919" FontSize="18" FontWeight="SemiBold"
+                               Text="{Binding Message}" TextWrapping="Wrap" />
+                    <Border Height="16" Margin="0,14,0,0" BorderBrush="#B8B8B8" BorderThickness="1" Background="#E5E5E5">
+                        <ProgressBar Margin="1" Foreground="#00A2FF" Background="Transparent" BorderThickness="0"
+                                     IsIndeterminate="{Binding ProgressIndeterminate}"
+                                     Maximum="{Binding ProgressMaximum}" Value="{Binding ProgressValue}" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="2" Padding="12,8" Background="#F2F2F2" BorderBrush="#CCCCCC" BorderThickness="0,1,0,0">
+                <Button Width="92" Height="28" HorizontalAlignment="Right" Content="{Binding CancelButtonText}"
+                        IsEnabled="{Binding CancelEnabled}" Command="{Binding CancelInstallCommand}"
+                        Background="#FFFFFF" Foreground="#191919" BorderBrush="#AAAAAA" BorderThickness="1"
+                        CornerRadius="3" Padding="12,3" />
+            </Border>
+        </Grid>
+    </Border>
+</base:AvaloniaDialogBase>

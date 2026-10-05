@@ -45,6 +45,7 @@ SPDX-License-Identifier: MPL-2.0
             <StaticResource x:Key="ToolTipForeground" ResourceKey="ToolTipForegroundBrush" />
 
             <FontFamily x:Key="Rubik">avares://Leafstrap/Resources/Fonts/Rubik-VariableFont_wght.ttf</FontFamily>
+            <FontFamily x:Key="SourceSans3">avares://Leafstrap/Resources/Fonts/SourceSans3-Regular.ttf</FontFamily>
             <FontFamily x:Key="BuilderIconsRegular">avares://Leafstrap/Resources/Fonts#BuilderIcons-Regular</FontFamily>
             <FontFamily x:Key="BuilderIconsFilled">avares://Leafstrap/Resources/Fonts#BuilderIcons-Filled</FontFamily>
 
