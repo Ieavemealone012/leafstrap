@@ -17,7 +17,7 @@ jobs:
         run: dotnet run --project build -- compile
       - uses: actions/upload-artifact@v7
         with:
-          name: froststrap-release-win-x64-${{ github.sha }}
+          name: leafstrap-release-win-x64-${{ github.sha }}
           path: .build/msbuild/*
 
   build-macos:
@@ -34,7 +34,7 @@ jobs:
         run: dotnet run --project build -- compile
       - uses: actions/upload-artifact@v6
         with:
-          name: froststrap-debug-macos-arm64-${{ github.sha }}
+          name: leafstrap-debug-macos-arm64-${{ github.sha }}
           path: .build/msbuild/*
 
   build-linux:
@@ -51,5 +51,5 @@ jobs:
         run: dotnet run --project build -- compile
       - uses: actions/upload-artifact@v6
         with:
-          name: froststrap-debug-linux-x64-${{ github.sha }}
+          name: leafstrap-debug-linux-x64-${{ github.sha }}
           path: .build/msbuild/*

@@ -37,6 +37,26 @@ namespace Froststrap.UI.Elements.Settings
         private readonly SearchIndexBuilder _searchIndexBuilder = new();
         private bool _isIndexingAllPagesStarted;
 
+        private readonly Random _halloweenRandom = new();
+        private readonly List<HalloweenParticle> _halloweenParticles = [];
+        private DispatcherTimer? _halloweenTimer;
+        private DateTime _halloweenLastTick;
+        private DateTime _halloweenLastSpawn;
+
+        private sealed class HalloweenParticle
+        {
+            public required Control Visual { get; init; }
+            public required RotateTransform Rotation { get; init; }
+            public double X { get; set; }
+            public double BaseY { get; init; }
+            public double Velocity { get; init; }
+            public double Age { get; set; }
+            public double Lifetime { get; init; }
+            public double BobAmount { get; init; }
+            public double BobSpeed { get; init; }
+            public double RotationBase { get; init; }
+        }
+
         private const double NotificationHeight = 80;
         private const double NotificationSpacing = 15;
         private const double NotificationSlideDistance = 500;
@@ -89,6 +109,8 @@ namespace Froststrap.UI.Elements.Settings
 
             this.Closing += MainWindow_Closing;
             this.Closed += MainWindow_Closed;
+
+            StartHalloweenOverlay();
 
             UpdatePageView(_viewModel.CurrentPage);
 
@@ -166,7 +188,8 @@ namespace Froststrap.UI.Elements.Settings
                 "integrations" => () => _viewModel?.NavigateToIntegrationsCommand.Execute(null),
                 "behaviour" => () => _viewModel?.NavigateToBehaviourCommand.Execute(null),
                 "linuxsettings" => () => _viewModel?.NavigateToLinuxSettingsCommand.Execute(null),
-                "mods" => () => _viewModel?.NavigateToPresetModsCommand.Execute(null),
+                "mods" => () => _viewModel?.NavigateToModsCommand.Execute(null),
+                "presetmods" => () => _viewModel?.NavigateToPresetModsCommand.Execute(null),
                 "fastflags" => () => _viewModel?.NavigateToFastFlagsCommand.Execute(null),
                 "appearance" => () => _viewModel?.NavigateToAppearanceCommand.Execute(null),
                 "regionselector" => () => _viewModel?.NavigateToRegionSelectorCommand.Execute(null),
@@ -759,9 +782,174 @@ namespace Froststrap.UI.Elements.Settings
 
         private void MainWindow_Closed(object? sender, EventArgs e)
         {
+            _halloweenTimer?.Stop();
+            _halloweenParticles.Clear();
             NotificationManager = null;
 
             App.Logger.Info("Settings window closed");
+        }
+
+        private void StartHalloweenOverlay()
+        {
+            _halloweenLastTick = DateTime.UtcNow;
+            _halloweenLastSpawn = DateTime.MinValue;
+            _halloweenTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
+            _halloweenTimer.Tick += HalloweenTimer_Tick;
+            _halloweenTimer.Start();
+        }
+
+        private void HalloweenTimer_Tick(object? sender, EventArgs e)
+        {
+            var overlay = this.FindControl<Canvas>("HalloweenOverlay");
+            if (overlay is null)
+                return;
+
+            bool enabled = App.Settings.Prop.Theme.GetFinal() == Enums.Theme.Halloween;
+            overlay.IsVisible = enabled;
+
+            if (!enabled)
+            {
+                if (_halloweenParticles.Count > 0)
+                {
+                    overlay.Children.Clear();
+                    _halloweenParticles.Clear();
+                }
+
+                _halloweenLastTick = DateTime.UtcNow;
+                return;
+            }
+
+            DateTime now = DateTime.UtcNow;
+            double delta = Math.Clamp((now - _halloweenLastTick).TotalSeconds, 0, 0.1);
+            _halloweenLastTick = now;
+
+            if (overlay.Bounds.Width > 0 && overlay.Bounds.Height > 0 &&
+                _halloweenParticles.Count < 8 &&
+                (now - _halloweenLastSpawn).TotalSeconds >= 1.35)
+            {
+                SpawnHalloweenParticle(overlay, initialPlacement: _halloweenParticles.Count < 4);
+                _halloweenLastSpawn = now;
+            }
+
+            for (int i = _halloweenParticles.Count - 1; i >= 0; i--)
+            {
+                HalloweenParticle particle = _halloweenParticles[i];
+                particle.Age += delta;
+                particle.X += particle.Velocity * delta;
+
+                Canvas.SetLeft(particle.Visual, particle.X);
+                Canvas.SetTop(particle.Visual,
+                    particle.BaseY + Math.Sin(particle.Age * particle.BobSpeed) * particle.BobAmount);
+                particle.Rotation.Angle = particle.RotationBase + Math.Sin(particle.Age * 2.2) * 7;
+
+                if (particle.Age >= particle.Lifetime)
+                {
+                    overlay.Children.Remove(particle.Visual);
+                    _halloweenParticles.RemoveAt(i);
+                }
+            }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Security",
+            "CA5394:Do not use insecure randomness",
+            Justification = "Randomness is cosmetic and is not used for security.")]
+        private void SpawnHalloweenParticle(Canvas overlay, bool initialPlacement)
+        {
+            bool isGhost = _halloweenRandom.NextDouble() < 0.32;
+            Control visual = isGhost ? CreateGhostVector() : CreateBatVector();
+            double size = isGhost
+                ? 34 + _halloweenRandom.NextDouble() * 30
+                : 30 + _halloweenRandom.NextDouble() * 46;
+
+            visual.Width = size;
+            visual.Height = isGhost ? size * 1.08 : size * 0.58;
+            visual.Opacity = isGhost
+                ? 0.13 + _halloweenRandom.NextDouble() * 0.12
+                : 0.15 + _halloweenRandom.NextDouble() * 0.18;
+
+            bool leftToRight = _halloweenRandom.Next(2) == 0;
+            double lifetime = 10 + _halloweenRandom.NextDouble() * 9;
+            double distance = overlay.Bounds.Width + size * 2 + 24;
+            double startX = leftToRight ? -size - 12 : overlay.Bounds.Width + size + 12;
+            double velocity = (leftToRight ? 1 : -1) * distance / lifetime;
+
+            double initialProgress = 0;
+            if (initialPlacement)
+            {
+                initialProgress = 0.14 + _halloweenRandom.NextDouble() * 0.66;
+                startX += velocity * lifetime * initialProgress;
+            }
+
+            double maxY = Math.Max(90, overlay.Bounds.Height - visual.Height - 60);
+            double y = 48 + _halloweenRandom.NextDouble() * Math.Max(1, maxY - 48);
+            double rotationBase = _halloweenRandom.Next(-12, 13);
+            var rotation = new RotateTransform(rotationBase);
+            visual.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            visual.RenderTransform = rotation;
+
+            Canvas.SetLeft(visual, startX);
+            Canvas.SetTop(visual, y);
+            overlay.Children.Add(visual);
+            _halloweenParticles.Add(new HalloweenParticle
+            {
+                Visual = visual,
+                Rotation = rotation,
+                X = startX,
+                BaseY = y,
+                Velocity = velocity,
+                Age = initialProgress * lifetime,
+                Lifetime = lifetime,
+                BobAmount = 10 + _halloweenRandom.NextDouble() * 18,
+                BobSpeed = 1.4 + _halloweenRandom.NextDouble() * 1.4,
+                RotationBase = rotationBase
+            });
+        }
+
+        private static Avalonia.Controls.Shapes.Path CreateBatVector()
+        {
+            return new Avalonia.Controls.Shapes.Path
+            {
+                Stretch = Stretch.Uniform,
+                Fill = new SolidColorBrush(Color.Parse("#14081C")),
+                Stroke = new SolidColorBrush(Color.Parse("#FF7A00")),
+                StrokeThickness = 0.7,
+                Data = Geometry.Parse("M2,18 C10,7 18,8 25,14 C27,7 30,4 32,11 C34,4 37,7 39,14 C46,8 54,7 62,18 C53,16 48,21 44,27 C39,23 35,22 32,27 C29,22 25,23 20,27 C16,21 11,16 2,18 Z")
+            };
+        }
+
+        private static Grid CreateGhostVector()
+        {
+            var ghost = new Grid();
+            ghost.Children.Add(new Avalonia.Controls.Shapes.Path
+            {
+                Stretch = Stretch.Fill,
+                Fill = new SolidColorBrush(Color.Parse("#FFF1DA")),
+                Stroke = new SolidColorBrush(Color.Parse("#FF9A3C")),
+                StrokeThickness = 0.8,
+                Data = Geometry.Parse("M8,38 V20 C8,9 15,2 24,2 C33,2 40,9 40,20 V38 L34,32 L29,38 L24,32 L19,38 L14,32 Z")
+            });
+
+            ghost.Children.Add(new Avalonia.Controls.Shapes.Ellipse
+            {
+                Width = 5,
+                Height = 7,
+                Margin = new Thickness(0, 0, 12, 5),
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                Fill = new SolidColorBrush(Color.Parse("#301838"))
+            });
+            ghost.Children.Add(new Avalonia.Controls.Shapes.Ellipse
+            {
+                Width = 5,
+                Height = 7,
+                Margin = new Thickness(12, 0, 0, 5),
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                Fill = new SolidColorBrush(Color.Parse("#301838"))
+            });
+
+            return ghost;
         }
 
         #endregion

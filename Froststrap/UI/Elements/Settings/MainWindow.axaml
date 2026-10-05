@@ -244,6 +244,14 @@ SPDX-License-Identifier: MPL-2.0
             </ui:FANavigationView.Content>
         </ui:FANavigationView>
 
+        <!-- Lightweight vector silhouettes used only by Haunted Leaf. -->
+        <Canvas x:Name="HalloweenOverlay"
+                Grid.RowSpan="3"
+                IsHitTestVisible="False"
+                IsVisible="False"
+                ClipToBounds="True"
+                ZIndex="900" />
+
         <Border
             Grid.Row="2"
             Height="56"

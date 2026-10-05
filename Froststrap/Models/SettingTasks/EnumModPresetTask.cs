@@ -48,7 +48,7 @@ namespace Froststrap.Models.SettingTasks
 
                         using var resourceStream = data.ResourceStream;
                         using var memoryStream = new MemoryStream();
-                        data.ResourceStream.CopyTo(memoryStream);
+                        resourceStream.CopyTo(memoryStream);
 
                         Filesystem.AssertReadOnly(data.FullFilePath);
                         File.WriteAllBytes(data.FullFilePath, memoryStream.ToArray());

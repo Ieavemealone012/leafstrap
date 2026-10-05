@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="XML" extensions=".xml" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment" foreground="#8E7A98" />
+  <Color name="CData" foreground="#FFC078" />
+  <Color name="DocType" foreground="#FF9A3C" />
+  <Color name="XmlDeclaration" foreground="#FF9A3C" />
+  <Color name="XmlTag" foreground="#FF7A00" />
+  <Color name="AttributeName" foreground="#D7A7E8" />
+  <Color name="AttributeValue" foreground="#FFC078" />
+  <Color name="Entity" foreground="#FFF5E9" />
+  <RuleSet>
+    <Span color="Comment" begin="&lt;!--" end="--&gt;" />
+    <Span color="CData" begin="&lt;![CDATA[" end="]]&gt;" />
+    <Span color="DocType" begin="&lt;!DOCTYPE" end="&gt;" />
+    <Span color="XmlDeclaration" begin="&lt;?" end="?&gt;" />
+    <Span color="XmlTag" begin="&lt;" end="&gt;">
+      <RuleSet>
+        <Span color="AttributeValue" begin="&quot;" end="&quot;" />
+        <Span color="AttributeValue" begin="'" end="'" />
+        <Keywords color="AttributeName"><Word>=</Word></Keywords>
+      </RuleSet>
+    </Span>
+    <Span color="Entity" begin="&amp;" end=";" />
+  </RuleSet>
+</SyntaxDefinition>

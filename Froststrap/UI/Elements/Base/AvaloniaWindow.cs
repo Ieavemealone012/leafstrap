@@ -143,12 +143,19 @@ namespace Froststrap.UI.Elements.Base
             if (faTheme != null)
             {
                 faTheme.PreferSystemTheme = false;
-                bool isLeafstrapTheme = finalTheme == Enums.Theme.Leafstrap;
-                bool isRoblox2016Theme = finalTheme == Enums.Theme.Roblox2016;
-                faTheme.PreferUserAccentColor = !isLeafstrapTheme && !isRoblox2016Theme;
-                faTheme.CustomAccentColor = isLeafstrapTheme
-                    ? Color.Parse("#20E63A")
-                    : isRoblox2016Theme ? Color.Parse("#00A2FF") : null;
+                faTheme.PreferUserAccentColor = finalTheme is Enums.Theme.Default or Enums.Theme.Dark or Enums.Theme.Light or Enums.Theme.Custom;
+                faTheme.CustomAccentColor = finalTheme switch
+                {
+                    Enums.Theme.Leafstrap => Color.Parse("#20E63A"),
+                    Enums.Theme.Roblox2016 => Color.Parse("#00A2FF"),
+                    Enums.Theme.Halloween => Color.Parse("#FF7A00"),
+                    Enums.Theme.Cyan => Color.Parse("#00C8D7"),
+                    Enums.Theme.Purple => Color.Parse("#9B5DE5"),
+                    Enums.Theme.Blue => Color.Parse("#3388FF"),
+                    Enums.Theme.Orange => Color.Parse("#FF8A24"),
+                    Enums.Theme.Pink => Color.Parse("#F15BB5"),
+                    _ => null
+                };
             }
 
             if (_activeThemeDictionary != null)

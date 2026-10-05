@@ -14,6 +14,13 @@ namespace Froststrap.Enums
         Custom,
         Leafstrap,
         [EnumName(StaticName = "Roblox (2016)")]
-        Roblox2016
+        Roblox2016,
+        [EnumName(StaticName = "Haunted Leaf (Halloween)")]
+        Halloween,
+        Cyan,
+        Purple,
+        Blue,
+        Orange,
+        Pink
     }
 }

@@ -30,6 +30,7 @@ namespace Froststrap.UI.ViewModels.Settings
             ["behaviour"] = LucideIconNames.Play,
             ["linuxsettings"] = LucideIconNames.Settings,
             ["mods"] = LucideIconNames.BookOpen,
+            ["presetmods"] = LucideIconNames.BookOpen,
             ["fastflags"] = LucideIconNames.Flag,
             ["appearance"] = LucideIconNames.Palette,
             ["regionselector"] = LucideIconNames.Globe,
@@ -111,6 +112,7 @@ namespace Froststrap.UI.ViewModels.Settings
         public IRelayCommand NavigateToIntegrationsCommand { get; }
         public IRelayCommand NavigateToBehaviourCommand { get; }
         public IRelayCommand NavigateToLinuxSettingsCommand { get; }
+        public IRelayCommand NavigateToModsCommand { get; }
         public IRelayCommand NavigateToMyModsCommand { get; }
         public IRelayCommand NavigateToFastFlagsCommand { get; }
         public IRelayCommand NavigateToFastFlagEditorCommand { get; }
@@ -156,7 +158,17 @@ namespace Froststrap.UI.ViewModels.Settings
             NavigateToIntegrationsCommand = new RelayCommand(() => Navigate("integrations", Strings.Menu_Integrations_Title, Strings.Menu_Integrations_Description, new IntegrationsViewModel()));
             NavigateToBehaviourCommand = new RelayCommand(() => Navigate("behaviour", Strings.Menu_Behaviour_Title, Strings.Menu_Behaviour_Description, new BehaviourViewModel()));
             NavigateToLinuxSettingsCommand = new RelayCommand(() => Navigate("linuxsettings", Strings.Menu_LinuxSettings_Title, null!, new LinuxSettingsViewModel()));
-            NavigateToPresetModsCommand = new RelayCommand(() => Navigate("mods", Strings.Menu_PresetMods_Title, Strings.Menu_PresetMods_Description, new ModsPresetsViewModel()));
+            NavigateToModsCommand = new RelayCommand(() =>
+                Navigate("mods", Strings.Menu_Mods_Title, Strings.Menu_Mods_InfoBar, new ModsViewModel()));
+            NavigateToPresetModsCommand = new RelayCommand(() => Navigate(
+                "presetmods",
+                Strings.Menu_PresetMods_Title,
+                Strings.Menu_PresetMods_Description,
+                new ModsPresetsViewModel(),
+                [
+                    new() { Content = Strings.Menu_Mods_Title, Tag = "mods" },
+                    new() { Content = Strings.Menu_PresetMods_Title, Tag = null, IsLast = true }
+                ]));
             NavigateToFastFlagsCommand = new RelayCommand(() =>
             {
                 var dialogService = new FastFlagsDialogService(this);
@@ -195,7 +207,7 @@ namespace Froststrap.UI.ViewModels.Settings
             NavigateToCommunityModsCommand = new RelayCommand(() =>
             {
                 ObservableCollection<BreadcrumbItemModel> crumbs = [
-                    new() { Content = Strings.Menu_PresetMods_Title, Tag = "mods" },
+                    new() { Content = Strings.Menu_Mods_Title, Tag = "mods" },
                     new() { Content = Strings.Menu_CommunityMods_Title, Tag = null, IsLast = true }
                 ];
                 Navigate("communitymods", Strings.Menu_CommunityMods_Title, Strings.Menu_CommunityMods_Description, new CommunityModsViewModel(), crumbs);
@@ -204,19 +216,12 @@ namespace Froststrap.UI.ViewModels.Settings
             NavigateToModGeneratorCommand = new RelayCommand(() =>
             {
                 Navigate("modgenerator", Strings.Menu_ModGenerator_Title, Strings.Menu_ModGenerator_Description, new ModGeneratorViewModel(), [
-                    new() { Content = Strings.Menu_PresetMods_Title, Tag = "mods" },
+                    new() { Content = Strings.Menu_Mods_Title, Tag = "mods" },
                     new() { Content = Strings.Menu_ModGenerator_Title, Tag = null, IsLast = true }
                 ]);
             });
 
-            NavigateToMyModsCommand = new RelayCommand(() =>
-            {
-                ObservableCollection<BreadcrumbItemModel> crumbs = [
-                    new() { Content = Strings.Menu_PresetMods_Title, Tag = "mods" },
-                    new() { Content = Strings.Menu_Mods_Title, Tag = null, IsLast = true }
-                ];
-                Navigate("custommods", Strings.Menu_Mods_Title, Strings.Menu_Mods_InfoBar, new ModsViewModel(), crumbs);
-            });
+            NavigateToMyModsCommand = NavigateToModsCommand;
 
             var lastPageName = App.State.Prop.LastPage;
             if (lastPageName != null)
@@ -259,7 +264,7 @@ namespace Froststrap.UI.ViewModels.Settings
                         NavigateToLinuxSettingsCommand.Execute(null);
                     break;
                 case "Froststrap.UI.ViewModels.Settings.Mods.ModsViewModel":
-                    NavigateToPresetModsCommand.Execute(null);
+                    NavigateToModsCommand.Execute(null);
                     break;
                 case "Froststrap.UI.ViewModels.Settings.FastFlagsViewModel":
                     NavigateToFastFlagsCommand.Execute(null);
@@ -470,7 +475,7 @@ namespace Froststrap.UI.ViewModels.Settings
             switch (item.Tag)
             {
                 case "mods":
-                    NavigateToPresetModsCommand.Execute(null);
+                    NavigateToModsCommand.Execute(null);
                     break;
                 case "fastflags":
                     NavigateToFastFlagsCommand.Execute(null);

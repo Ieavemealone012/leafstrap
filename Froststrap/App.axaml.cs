@@ -570,7 +570,7 @@ internal partial class App : Application
             State.Save();
         }
 
-        if (Settings.Prop.Theme > Theme.Leafstrap)
+        if (!Enum.IsDefined(Settings.Prop.Theme))
         {
             Settings.Prop.Theme = Theme.Dark;
             Settings.Save();

@@ -52,7 +52,12 @@ namespace Froststrap.UI.ViewModels.Onboarding
             };
         }
 
-        public IEnumerable<Theme> Themes { get; } = Enum.GetValues<Theme>();
+        public IEnumerable<Theme> Themes { get; } =
+        [
+            Theme.Default, Theme.Dark, Theme.Light, Theme.Cyan, Theme.Purple,
+            Theme.Blue, Theme.Leafstrap, Theme.Roblox2016, Theme.Orange,
+            Theme.Pink, Theme.Custom, Theme.Halloween
+        ];
 
         public Theme Theme
         {
