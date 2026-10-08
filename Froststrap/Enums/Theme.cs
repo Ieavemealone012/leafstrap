@@ -13,7 +13,7 @@ namespace Froststrap.Enums
         [EnumName(FromTranslation = "Common.Custom")]
         Custom,
         Leafstrap,
-        [EnumName(StaticName = "Roblox (2016)")]
+        [EnumName(StaticName = "Roblox Classic (2016)")]
         Roblox2016,
         [EnumName(StaticName = "Haunted Leaf (Halloween)")]
         Halloween,

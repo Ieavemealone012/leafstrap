@@ -46,8 +46,15 @@ SPDX-License-Identifier: MPL-2.0
 
             <FontFamily x:Key="Rubik">avares://Leafstrap/Resources/Fonts/Rubik-VariableFont_wght.ttf</FontFamily>
             <FontFamily x:Key="SourceSans3">avares://Leafstrap/Resources/Fonts/SourceSans3-Regular.ttf</FontFamily>
+            <FontFamily x:Key="ComicNeueAngular">avares://Leafstrap/Resources/Fonts/ComicNeueAngular-Bold.ttf#Comic Neue Angular</FontFamily>
             <FontFamily x:Key="BuilderIconsRegular">avares://Leafstrap/Resources/Fonts#BuilderIcons-Regular</FontFamily>
             <FontFamily x:Key="BuilderIconsFilled">avares://Leafstrap/Resources/Fonts#BuilderIcons-Filled</FontFamily>
+
+            <!-- Standard themes keep the shell transparent. Roblox Classic's
+                 light/dark dictionaries replace these with its blue chrome. -->
+            <SolidColorBrush x:Key="ClassicHeaderBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="ClassicNavigationBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="ClassicFooterBackground" Color="Transparent" />
 
             <converters:StringFormatConverter x:Key="StringFormatConverter" />
             <converters:EnumNameConverter x:Key="EnumNameConverter" />

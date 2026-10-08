@@ -127,17 +127,20 @@ namespace Froststrap.UI.Elements.Base
             if (Application.Current == null) return;
 
             var finalTheme = App.Settings.Prop.Theme.GetFinal();
-            string themeName = Enum.GetName(finalTheme) ?? "Dark";
+            bool classicDark = finalTheme == Enums.Theme.Roblox2016 && Extensions.ThemeEx.IsSystemDark();
+            bool useLightBase = finalTheme == Enums.Theme.Light || (finalTheme == Enums.Theme.Roblox2016 && !classicDark);
+            string themeName = finalTheme == Enums.Theme.Roblox2016
+                ? (classicDark ? "Roblox2016Dark" : "Roblox2016Light")
+                : Enum.GetName(finalTheme) ?? "Dark";
 
-            bool useLightBase = finalTheme is Enums.Theme.Light or Enums.Theme.Roblox2016;
             Application.Current.RequestedThemeVariant = useLightBase
                 ? ThemeVariant.Light
                 : ThemeVariant.Dark;
 
-            Application.Current.Resources["ContentControlThemeFontFamily"] =
-                finalTheme == Enums.Theme.Roblox2016
-                    ? (Avalonia.Media.FontFamily)Application.Current.Resources["SourceSans3"]!
-                    : Avalonia.Media.FontFamily.Default;
+            var themeFont = finalTheme == Enums.Theme.Roblox2016
+                ? (Avalonia.Media.FontFamily)Application.Current.Resources["ComicNeueAngular"]!
+                : Avalonia.Media.FontFamily.Default;
+            Application.Current.Resources["ContentControlThemeFontFamily"] = themeFont;
 
             var faTheme = Application.Current.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
             if (faTheme != null)
@@ -288,7 +291,10 @@ namespace Froststrap.UI.Elements.Base
                 foreach (var window in desktop.Windows)
                 {
                     if (window is AvaloniaWindow avaloniaWindow)
+                    {
+                        avaloniaWindow.FontFamily = themeFont;
                         avaloniaWindow.ApplyWindowBackground();
+                    }
                 }
             }
 

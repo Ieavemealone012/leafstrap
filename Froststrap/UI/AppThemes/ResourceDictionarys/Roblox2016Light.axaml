@@ -1,0 +1,31 @@
+<!--
+SPDX-FileCopyrightText: 2026 Leafstrap contributors
+SPDX-License-Identifier: MPL-2.0
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="ClassicHeaderBackground" Color="#CDEEFF" />
+    <SolidColorBrush x:Key="ClassicNavigationBackground" Color="#C7E9FA" />
+    <SolidColorBrush x:Key="ClassicFooterBackground" Color="#E8F6FD" />
+
+    <SolidColorBrush x:Key="ApplicationBackgroundColor" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NewTextEditorBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NewTextEditorForeground" Color="#111216" />
+    <SolidColorBrush x:Key="NewTextEditorLink" Color="#008FD6" />
+    <SolidColorBrush x:Key="CompletionListBackgroundBrush" Color="#F2F8FC" />
+    <SolidColorBrush x:Key="NormalDarkAndLightBackground" Color="#F5FBFE" />
+    <SolidColorBrush x:Key="NotificationBackgroundColor" Color="#F7FBFD" />
+
+    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#F2F8FC" />
+    <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="#EAF6FC" />
+    <SolidColorBrush x:Key="ControlFillColorTertiaryBrush" Color="#DCEFF8" />
+    <SolidColorBrush x:Key="CardBackgroundFillColorDefaultBrush" Color="#F7FBFD" />
+    <SolidColorBrush x:Key="CardBackgroundFillColorSecondaryBrush" Color="#EAF6FC" />
+    <SolidColorBrush x:Key="LayerFillColorDefaultBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#C7E9FA" />
+    <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#C7E9FA" />
+    <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="#111216" />
+    <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="#C8111216" />
+    <SolidColorBrush x:Key="TextFillColorTertiaryBrush" Color="#99111216" />
+</ResourceDictionary>

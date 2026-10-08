@@ -6,42 +6,93 @@ SPDX-License-Identifier: MPL-2.0
                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                          xmlns:vm="using:Froststrap.UI.ViewModels.Bootstrapper"
                          xmlns:base="clr-namespace:Froststrap.UI.Elements.Bootstrapper.Base"
-                         xmlns:controls="clr-namespace:Froststrap.UI.Elements.Controls"
                          x:Class="Froststrap.UI.Elements.Bootstrapper.Roblox2016Dialog"
                          x:DataType="vm:BootstrapperDialogViewModel"
-                         Width="440" Height="205"
+                         Width="568" Height="420"
+                         MinWidth="568" MinHeight="420"
                          CanResize="False"
-                         Title="Leafstrap"
-                         FontFamily="{StaticResource SourceSans3}"
+                         Title="{Binding Title}"
+                         FontFamily="{StaticResource ComicNeueAngular}"
                          WindowStartupLocation="CenterScreen"
-                         ExtendClientAreaToDecorationsHint="True"
-                         Background="#E3E3E3">
-    <Border BorderBrush="#B8B8B8" BorderThickness="1" Background="#FFFFFF">
-        <Grid RowDefinitions="Auto,*,Auto">
-            <controls:TitleBar Grid.Row="0" Padding="8" Icon="{Binding Icon}" Title="{Binding Title}"
-                               ShowMinimize="False" ShowMaximize="False" ShowClose="False" />
+                         WindowDecorations="Full"
+                         ExtendClientAreaToDecorationsHint="False"
+                         Background="#FFFFFF">
+    <Border Background="#FFFFFF">
+        <Grid>
+            <TextBlock Margin="25,15,0,0"
+                       HorizontalAlignment="Left" VerticalAlignment="Top"
+                       Foreground="#171717" FontSize="13" FontWeight="Bold"
+                       Text="Launching Roblox with:" />
 
-            <Grid Grid.Row="1" Margin="20,10,20,14" ColumnDefinitions="Auto,*">
-                <Border Width="56" Height="56" Background="#F2F2F2" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="3">
-                    <Image Width="44" Height="44" Source="{Binding Icon}" RenderOptions.BitmapInterpolationMode="HighQuality" />
-                </Border>
-                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Foreground="#191919" FontSize="18" FontWeight="SemiBold"
-                               Text="{Binding Message}" TextWrapping="Wrap" />
-                    <Border Height="16" Margin="0,14,0,0" BorderBrush="#B8B8B8" BorderThickness="1" Background="#E5E5E5">
-                        <ProgressBar Margin="1" Foreground="#00A2FF" Background="Transparent" BorderThickness="0"
-                                     IsIndeterminate="{Binding ProgressIndeterminate}"
-                                     Maximum="{Binding ProgressMaximum}" Value="{Binding ProgressValue}" />
+            <Border Width="518" Height="217" Margin="24,55,0,0"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    BorderBrush="#8EC8E8" BorderThickness="1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#D8F2FF" Offset="0" />
+                        <GradientStop Color="#B7E4FA" Offset="0.48" />
+                        <GradientStop Color="#8ED0F2" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid ColumnDefinitions="190,*">
+                    <Border Width="128" Height="128"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Background="#F8FCFF" BorderBrush="#72B9DF"
+                            BorderThickness="1" CornerRadius="10">
+                        <Image Width="100" Height="100" Source="{Binding Icon}"
+                               RenderOptions.BitmapInterpolationMode="HighQuality" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Margin="18,0,26,0" VerticalAlignment="Center">
+                        <TextBlock Foreground="#092E4B" FontSize="31" FontWeight="Bold" Text="Leafstrap" />
+                        <TextBlock Margin="1,8,0,0" Foreground="#174F73"
+                                   FontSize="15" FontWeight="Bold"
+                                   Text="A classic way to launch Roblox."
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <StackPanel Width="423" Margin="0,300,0,0"
+                        HorizontalAlignment="Center" VerticalAlignment="Top">
+                <TextBlock Margin="0,0,0,2"
+                           HorizontalAlignment="Left"
+                           Foreground="#171717" FontSize="11" FontWeight="SemiBold"
+                           Text="{Binding Message}" TextTrimming="CharacterEllipsis" />
+
+                <ProgressBar Height="8"
+                             Maximum="{Binding ProgressMaximum}"
+                             Value="{Binding ProgressValue}"
+                             IsIndeterminate="{Binding ProgressIndeterminate}"
+                             Foreground="#B7EA00" Background="#A5A89B"
+                             BorderBrush="#70736A" BorderThickness="1"
+                             CornerRadius="4" />
+            </StackPanel>
+
+            <Grid Width="518" Height="32" Margin="0,331,0,0"
+                  HorizontalAlignment="Center" VerticalAlignment="Top"
+                  ColumnDefinitions="*,Auto,*">
+                <StackPanel Grid.Column="1"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Foreground="#171717"
+                               FontSize="14" FontWeight="Bold"
+                               Text="Get more with Builders Club!" />
+                    <Border Margin="7,0,0,0" Padding="9,4"
+                            Background="#079C17" BorderBrush="#006F0C" BorderThickness="1">
+                        <TextBlock Foreground="#FFFFFF" FontSize="16" Text="Join Builders Club" />
                     </Border>
                 </StackPanel>
-            </Grid>
 
-            <Border Grid.Row="2" Padding="12,8" Background="#F2F2F2" BorderBrush="#CCCCCC" BorderThickness="0,1,0,0">
-                <Button Width="92" Height="28" HorizontalAlignment="Right" Content="{Binding CancelButtonText}"
-                        IsEnabled="{Binding CancelEnabled}" Command="{Binding CancelInstallCommand}"
-                        Background="#FFFFFF" Foreground="#191919" BorderBrush="#AAAAAA" BorderThickness="1"
-                        CornerRadius="3" Padding="12,3" />
-            </Border>
+                <Button Grid.Column="2" Width="78" Height="28"
+                        Margin="12,0,0,0"
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Content="{Binding CancelButtonText}"
+                        IsEnabled="{Binding CancelEnabled}"
+                        Command="{Binding CancelInstallCommand}"
+                        Background="#F4F4F4" Foreground="#171717"
+                        BorderBrush="#8B8B8B" BorderThickness="1" />
+            </Grid>
         </Grid>
     </Border>
 </base:AvaloniaDialogBase>

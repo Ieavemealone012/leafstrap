@@ -14,8 +14,13 @@ namespace Froststrap.Extensions
             if (dialogTheme != Theme.Default)
                 return dialogTheme;
 
+            return IsSystemDark() ? Theme.Dark : Theme.Light;
+        }
+
+        public static bool IsSystemDark()
+        {
             var variant = Application.Current?.PlatformSettings?.GetColorValues().ThemeVariant;
-            return variant == PlatformThemeVariant.Dark ? Theme.Dark : Theme.Light;
+            return variant == PlatformThemeVariant.Dark;
         }
     }
 }

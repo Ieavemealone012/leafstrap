@@ -31,12 +31,12 @@ SPDX-License-Identifier: MPL-2.0
     WindowStartupLocation="CenterScreen">
 
     <Grid RowDefinitions="36,*,56">
-        <Panel Grid.Row="0" Background="{DynamicResource ControlFillColorDefaultBrush}" PointerPressed="TitleBarGrid_PointerPressed"/>
+        <Panel Grid.Row="0" Background="{DynamicResource ClassicHeaderBackground}" PointerPressed="TitleBarGrid_PointerPressed"/>
 
         <ui:FANavigationView
             Name="NavView"
             Grid.Row="1"
-            Background="{DynamicResource ControlFillColorDefaultBrush}"
+            Background="{DynamicResource ClassicNavigationBackground}"
             IsBackButtonVisible="False"
             IsSettingsVisible="False"
             ItemInvoked="NavView_ItemInvoked"
@@ -256,7 +256,7 @@ SPDX-License-Identifier: MPL-2.0
             Grid.Row="2"
             Height="56"
             Padding="0,0,16,0"
-            Background="{DynamicResource ControlFillColorDefaultBrush}"
+            Background="{DynamicResource ClassicFooterBackground}"
             BorderBrush="{DynamicResource ControlStrokeColorDefault}"
             BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto" ColumnSpacing="8">
