@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using Fallout.Common;
 using Fallout.Common.IO;
 using Serilog;
@@ -9,11 +10,11 @@ public partial class Build : FalloutBuild
 {
     string GetVersion()
     {
-        var (_, stdout, _) = RunProcessCaptured("git", "describe --tags --always --dirty");
-        var raw = stdout.Trim();
-        if (string.IsNullOrEmpty(raw))
-            raw = "1.0.0";
-        return raw.TrimStart('v').Replace('-', '~');
+        // This fork retains upstream Git tags, so git describe can report a
+        // Froststrap 2.x version even though the Leafstrap package is 1.0.6.
+        // Package metadata must come from Leafstrap's project version instead.
+        var project = XDocument.Load(GitRoot / "Froststrap" / "Froststrap.csproj");
+        return project.Descendants("Version").First().Value.Trim();
     }
 
     void PublishLinux(string outputDirectory)
@@ -133,7 +134,16 @@ public partial class Build : FalloutBuild
 
     void BuildDeb(AbsolutePath outputDir, AbsolutePath appDir, string version)
     {
-        AbsolutePath debianDir = appDir / "DEBIAN";
+        // Keep AppImage-only root files and symlinks out of the Debian payload.
+        // A dedicated package root also makes repeated builds deterministic.
+        AbsolutePath packageRoot = outputDir / "deb-root";
+        if (Directory.Exists(packageRoot))
+            Directory.Delete(packageRoot, recursive: true);
+
+        Directory.CreateDirectory(packageRoot);
+        RunProcess("cp", $"-a \"{appDir / "usr"}\" \"{packageRoot / "usr"}\"");
+
+        AbsolutePath debianDir = packageRoot / "DEBIAN";
         Directory.CreateDirectory(debianDir);
 
         var control = $"""
@@ -152,7 +162,24 @@ public partial class Build : FalloutBuild
         RunProcess("chmod", $"755 \"{debianDir / "postinst"}\"");
 
         Log.Information("Building .deb");
-        RunProcess("dpkg-deb", $"--build \"{appDir}\" \"{outputDir / "Leafstrap-linux-x64.deb"}\"");
+        var (exitCode, stdout, stderr) = RunProcessCaptured(
+            "dpkg-deb",
+            $"--root-owner-group --build \"{packageRoot}\" \"{outputDir / "Leafstrap-linux-x64.deb"}\"");
+
+        if (!string.IsNullOrWhiteSpace(stdout))
+            Log.Information("{DpkgOutput}", stdout.Trim());
+        if (!string.IsNullOrWhiteSpace(stderr))
+            Log.Information("{DpkgErrorOutput}", stderr.Trim());
+
+        if (exitCode != 0)
+        {
+            // Surface the actual dpkg failure in GitHub's check annotations.
+            string detail = (stderr + "\n" + stdout).Trim().Replace("\r", " ").Replace("\n", "%0A");
+            Console.WriteLine($"::error title=Debian package failed::{detail}");
+            throw new Exception($"dpkg-deb failed with exit code {exitCode}");
+        }
+
+        Directory.Delete(packageRoot, recursive: true);
     }
 
     static bool IsOnPath(string exe) =>
