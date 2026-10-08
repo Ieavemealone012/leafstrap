@@ -26,6 +26,7 @@ namespace Froststrap.Models.Persistable
         public bool UseDiscordRichPresence { get; set; } = true;
         public bool HideRPCButtons { get; set; } = true;
         public bool EnableCustomStatusDisplay { get; set; } = true;
+        public DiscordRPCStatusDisplay RichPresenceStatusDisplayType { get; set; } = DiscordRPCStatusDisplay.GameName;
         public bool ShowAccountOnRichPresence { get; set; }
         public bool StudioRPC { get; set; }
         public bool StudioThumbnailChanging { get; set; }

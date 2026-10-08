@@ -30,7 +30,9 @@ namespace Froststrap.Integrations
                 _ => int.MaxValue,
             };
 
-            var threshold = DateTime.Now.AddHours(-maxFileAge);
+            // CleanerOptions are expressed in days. The previous AddHours call
+            // made "One week" remove files older than only seven hours.
+            var threshold = DateTime.Now.AddDays(-maxFileAge);
 
             foreach (var directory in Directories)
             {

@@ -245,6 +245,23 @@ namespace Froststrap.UI.ViewModels.Settings
             set => App.Settings.Prop.EnableCustomStatusDisplay = value;
         }
 
+        public static IReadOnlyDictionary<string, DiscordRPCStatusDisplay> DiscordStatusDisplayTypes =>
+            new Dictionary<string, DiscordRPCStatusDisplay>
+            {
+                { "Game name", DiscordRPCStatusDisplay.GameName },
+                { "Activity details", DiscordRPCStatusDisplay.ActivityDetails }
+            };
+
+        public static string SelectedDiscordStatusDisplay
+        {
+            get => DiscordStatusDisplayTypes.First(pair => pair.Value == App.Settings.Prop.RichPresenceStatusDisplayType).Key;
+            set
+            {
+                if (DiscordStatusDisplayTypes.TryGetValue(value, out var displayType))
+                    App.Settings.Prop.RichPresenceStatusDisplayType = displayType;
+            }
+        }
+
         public static bool DiscordAccountOnProfile
         {
             get => App.Settings.Prop.ShowAccountOnRichPresence;

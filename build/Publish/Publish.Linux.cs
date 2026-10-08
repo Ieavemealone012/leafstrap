@@ -34,37 +34,37 @@ public partial class Build : FalloutBuild
         Directory.CreateDirectory(appDir / "usr" / "share" / "applications");
         Directory.CreateDirectory(appDir / "usr" / "share" / "icons" / "hicolor" / "512x512" / "apps");
 
-        AbsolutePath icon = GitRoot / "Froststrap" / "Froststrap.png";
+        AbsolutePath icon = GitRoot / "Froststrap" / "Leafstrap.png";
 
-        File.Copy(publishDir / "Froststrap", appDir / "usr" / "bin" / "Froststrap", overwrite: true);
-        File.Copy(icon, appDir / "froststrap.png", overwrite: true);
-        File.Copy(icon, appDir / "usr" / "share" / "icons" / "hicolor" / "512x512" / "apps" / "froststrap.png", overwrite: true);
+        File.Copy(publishDir / "Leafstrap", appDir / "usr" / "bin" / "Leafstrap", overwrite: true);
+        File.Copy(icon, appDir / "leafstrap.png", overwrite: true);
+        File.Copy(icon, appDir / "usr" / "share" / "icons" / "hicolor" / "512x512" / "apps" / "leafstrap.png", overwrite: true);
 
-        RunProcess("chmod", $"+x \"{appDir / "usr" / "bin" / "Froststrap"}\"");
+        RunProcess("chmod", $"+x \"{appDir / "usr" / "bin" / "Leafstrap"}\"");
 
         var desktopEntry = $"""
             [Desktop Entry]
             Type=Application
-            Name=Froststrap
-            Comment=A fork of Fishstrap, focused on performance and customization
-            Exec=froststrap %u
-            TryExec=froststrap
-            Icon=froststrap
+            Name=Leafstrap
+            Comment=A cross-platform Roblox bootstrapper focused on customization
+            Exec=Leafstrap %u
+            TryExec=Leafstrap
+            Icon=leafstrap
             Terminal=false
             Categories=Game;
             MimeType=x-scheme-handler/roblox;x-scheme-handler/roblox-player;
             X-AppImage-Version={version}
             """;
 
-        File.WriteAllText(appDir / "Froststrap.desktop", desktopEntry);
-        File.Copy(appDir / "Froststrap.desktop",
-                  appDir / "usr" / "share" / "applications" / "Froststrap.desktop",
+        File.WriteAllText(appDir / "Leafstrap.desktop", desktopEntry);
+        File.Copy(appDir / "Leafstrap.desktop",
+                  appDir / "usr" / "share" / "applications" / "Leafstrap.desktop",
                   overwrite: true);
 
         var appRun = """
             #!/bin/sh
             HERE="$(dirname "$(readlink -f "$0")")"
-            exec "$HERE/usr/bin/Froststrap" "$@"
+            exec "$HERE/usr/bin/Leafstrap" "$@"
             """;
 
         File.WriteAllText(appDir / "AppRun", appRun);
@@ -101,7 +101,7 @@ public partial class Build : FalloutBuild
 
         Log.Information("Building AppImage");
         RunProcess(tool,
-            $"--appimage-extract-and-run \"{appDir}\" \"{buildDir / "Froststrap-linux-x64.AppImage"}\"");
+            $"--appimage-extract-and-run \"{appDir}\" \"{buildDir / "Leafstrap-linux-x64.AppImage"}\"");
     }
 
     void BuildRpm(AbsolutePath outputDir, AbsolutePath appDir, string rpmVersion)
@@ -117,8 +117,8 @@ public partial class Build : FalloutBuild
         RunProcess("rpmbuild",
             $"-bb \"{spec}\" " +
             $"--define \"_topdir {topDir}\" " +
-            $"--define \"_froststrap_appdir {appDir}\" " +
-            $"--define \"froststrap_version {rpmVersion}\"");
+            $"--define \"_leafstrap_appdir {appDir}\" " +
+            $"--define \"leafstrap_version {rpmVersion}\"");
 
         var rpm = Directory
             .EnumerateFiles(topDir / "RPMS", "*.rpm", SearchOption.AllDirectories)
@@ -128,7 +128,7 @@ public partial class Build : FalloutBuild
         if (rpm is null)
             throw new InvalidOperationException($"rpmbuild produced no .rpm under {topDir / "RPMS"}");
 
-        File.Copy(rpm, outputDir / "Froststrap-linux-x64.rpm", overwrite: true);
+        File.Copy(rpm, outputDir / "Leafstrap-linux-x64.rpm", overwrite: true);
     }
 
     void BuildDeb(AbsolutePath outputDir, AbsolutePath appDir, string version)
@@ -137,10 +137,10 @@ public partial class Build : FalloutBuild
         Directory.CreateDirectory(debianDir);
 
         var control = $"""
-            Package: froststrap
+            Package: leafstrap
             Version: {version}
             Architecture: amd64
-            Maintainer: Froststrap-Dev
+            Maintainer: Ieavemealone012
             Depends: libicu-dev
             Description: Roblox bootstrapper and mod manager
 
@@ -152,7 +152,7 @@ public partial class Build : FalloutBuild
         RunProcess("chmod", $"755 \"{debianDir / "postinst"}\"");
 
         Log.Information("Building .deb");
-        RunProcess("dpkg-deb", $"--build \"{appDir}\" \"{outputDir / "Froststrap-linux-x64.deb"}\"");
+        RunProcess("dpkg-deb", $"--build \"{appDir}\" \"{outputDir / "Leafstrap-linux-x64.deb"}\"");
     }
 
     static bool IsOnPath(string exe) =>

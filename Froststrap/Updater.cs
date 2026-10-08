@@ -16,8 +16,6 @@ internal class Updater
     /// </summary>
     private const bool OpenReleaseNotes = false;
 
-    public static Bootstrapper? Bootstrapper { get; set; } = null!;
-
     public static async Task<bool> CheckForUpdates()
     {
         if (Process.GetProcessesByName(App.ProjectName).Length > 1)
@@ -32,7 +30,7 @@ internal class Updater
             return false;
         }
 
-        Bootstrapper?.SetStatus(Strings.Bootstrapper_Status_CheckingUpdates);
+        App.Bootstrapper?.SetStatus(Strings.Bootstrapper_Status_CheckingUpdates);
 
         App.Logger.Info("Checking for updates...");
 
@@ -121,26 +119,27 @@ internal class Updater
                 }
             }
 
-            Bootstrapper?.SetStatus(string.Format(CultureInfo.InvariantCulture, Strings.Bootstrapper_Status_DownloadingUpdate, releaseVer));
+            var bootstrapper = App.Bootstrapper;
+            if (bootstrapper is null)
+                throw new InvalidOperationException("The active bootstrapper is unavailable for the update download.");
+
+            bootstrapper.SetStatus(string.Format(CultureInfo.InvariantCulture, Strings.Bootstrapper_Status_DownloadingUpdate, releaseVer));
 
             string downloadPath = Path.Combine(Paths.TempUpdates, asset.Name);
             Directory.CreateDirectory(Paths.TempUpdates);
 
             App.Logger.Info($"Downloading update from {asset.BrowserDownloadUrl}");
 
-            if (Bootstrapper is not null)
-            {
-                await Bootstrapper.DownloadFileWithProgressAsync(asset.BrowserDownloadUrl, downloadPath);
-            }
+            await bootstrapper.DownloadFileWithProgressAsync(asset.BrowserDownloadUrl, downloadPath);
+
+            if (!File.Exists(downloadPath) || new FileInfo(downloadPath).Length == 0)
+                throw new InvalidDataException("The downloaded update package is missing or empty.");
 
             App.Logger.Info($"Download complete: {downloadPath}");
 
-            if (Bootstrapper is not null)
-            {
-                Bootstrapper.Dialog?.ProgressIndeterminate = true;
-                Bootstrapper.Dialog?.TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
-                Bootstrapper.SetStatus(string.Format(CultureInfo.InvariantCulture, Strings.Bootstrapper_Status_InstallingUpdate, releaseVer));
-            }
+            bootstrapper.Dialog?.ProgressIndeterminate = true;
+            bootstrapper.Dialog?.TaskbarProgressState = TaskbarItemProgressState.Indeterminate;
+            bootstrapper.SetStatus(string.Format(CultureInfo.InvariantCulture, Strings.Bootstrapper_Status_InstallingUpdate, releaseVer));
 
 
             bool updateApplied = await ApplyUpdate(downloadPath);

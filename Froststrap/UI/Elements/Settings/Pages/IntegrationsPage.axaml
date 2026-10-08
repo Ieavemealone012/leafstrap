@@ -188,6 +188,15 @@ SPDX-License-Identifier: MPL-2.0
             </controls:OptionControl>
 
             <controls:OptionControl
+                                    Header="Discord Status Display"
+                                    Description="Choose whether Discord highlights the Roblox game name or the activity details."
+                                    IsEnabled="{Binding DiscordActivityEnabled}">
+                <ComboBox Width="200"
+                          ItemsSource="{Binding DiscordStatusDisplayTypes.Keys}"
+                          SelectedItem="{Binding SelectedDiscordStatusDisplay, Mode=TwoWay}" />
+            </controls:OptionControl>
+
+            <controls:OptionControl
                                     Description="{x:Static resources:Strings.Menu_Integrations_AllowActivityJoining_Description}"
                                     Header="{x:Static resources:Strings.Menu_Integrations_AllowActivityJoining_Title}"
                                     IsEnabled="{Binding DiscordActivityEnabled}">

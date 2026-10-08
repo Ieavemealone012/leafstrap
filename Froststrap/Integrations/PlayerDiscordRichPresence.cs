@@ -395,7 +395,9 @@ namespace Froststrap.Integrations
             _currentPresence = new DiscordRPC.RichPresence
             {
                 Details = universeName,
-                StatusDisplay = App.Settings.Prop.EnableCustomStatusDisplay ? StatusDisplayType.Details : (StatusDisplayType)0,
+                StatusDisplay = App.Settings.Prop.EnableCustomStatusDisplay
+                    ? (StatusDisplayType)App.Settings.Prop.RichPresenceStatusDisplayType
+                    : (StatusDisplayType)0,
                 State = status,
                 Timestamps = new Timestamps { Start = timeStarted.ToUniversalTime() },
                 Buttons = GetButtons(),

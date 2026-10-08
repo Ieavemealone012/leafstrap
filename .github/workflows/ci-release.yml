@@ -1,4 +1,4 @@
-name: Build Leafstrap for macOS
+name: Build Leafstrap cross-platform packages
 
 on:
   workflow_dispatch:
@@ -82,9 +82,43 @@ jobs:
           name: leafstrap-macos-${{ matrix.arch }}-${{ github.sha }}
           path: .build/publish/Leafstrap-macos-${{ matrix.arch }}.pkg
 
+  build-linux:
+    name: Linux x64 beta
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install packaging tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - name: Build Linux packages
+        run: dotnet run --project build -- Publish --configuration Release
+
+      - name: Verify Linux packages
+        run: |
+          test -s .build/publish/Leafstrap-linux-x64.AppImage
+          test -s .build/publish/Leafstrap-linux-x64.deb
+          test -s .build/publish/Leafstrap-linux-x64.rpm
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: leafstrap-linux-x64-${{ github.sha }}
+          path: |
+            .build/publish/Leafstrap-linux-x64.AppImage
+            .build/publish/Leafstrap-linux-x64.deb
+            .build/publish/Leafstrap-linux-x64.rpm
+
   release:
     name: Create draft release
-    needs: build-macos
+    needs: [build-macos, build-linux]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
@@ -103,6 +137,12 @@ jobs:
           name: leafstrap-macos-x64-${{ github.sha }}
           path: release
 
+      - name: Download Linux beta packages
+        uses: actions/download-artifact@v7
+        with:
+          name: leafstrap-linux-x64-${{ github.sha }}
+          path: release
+
       - name: Create draft release
         uses: softprops/action-gh-release@v2
         with:
@@ -113,3 +153,6 @@ jobs:
           files: |
             release/Leafstrap-macos-arm64.pkg
             release/Leafstrap-macos-x64.pkg
+            release/Leafstrap-linux-x64.AppImage
+            release/Leafstrap-linux-x64.deb
+            release/Leafstrap-linux-x64.rpm
