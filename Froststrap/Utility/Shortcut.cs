@@ -63,7 +63,7 @@ namespace Froststrap.Utility
             return lnkPath;
         }
 
-        public static async void Create(string exePath, string exeArgs, string lnkPath, string? iconPath = null)
+        public static async void Create(string exePath, string exeArgs, string lnkPath, string? iconPath = null, bool integrateWithLinuxMenu = true)
         {
             string resolvedPath = ResolvePath(lnkPath);
 
@@ -77,7 +77,7 @@ namespace Froststrap.Utility
                 else if (OperatingSystem.IsMacOS())
                     CreateMacOsShortcut(exePath, exeArgs, lnkPath);
                 else if (OperatingSystem.IsLinux())
-                    CreateLinuxShortcut(exePath, exeArgs, lnkPath, iconPath);
+                    CreateLinuxShortcut(exePath, exeArgs, lnkPath, iconPath, integrateWithLinuxMenu);
 
                 if (_loadStatus != GenericTriState.Successful)
                     _loadStatus = GenericTriState.Successful;
@@ -308,7 +308,7 @@ namespace Froststrap.Utility
                 """);
         }
 
-        private static void CreateLinuxShortcut(string exePath, string exeArgs, string desktopPath, string? iconPath)
+        private static void CreateLinuxShortcut(string exePath, string exeArgs, string desktopPath, string? iconPath, bool integrateWithMenu)
         {
             string finalDesktopPath = Path.ChangeExtension(desktopPath, ".desktop");
             string appName = Path.GetFileNameWithoutExtension(finalDesktopPath);
@@ -327,11 +327,14 @@ namespace Froststrap.Utility
             File.WriteAllText(finalDesktopPath, content);
             Process.Start("chmod", $"+x \"{finalDesktopPath}\"")?.WaitForExit();
 
-            // also put in a directory that app launchers index
-            string appsDir = GetLinuxAppMenuDir();
-            Directory.CreateDirectory(appsDir);
-            string appMenuPath = Path.Combine(appsDir, Path.GetFileName(finalDesktopPath));
-            File.WriteAllText(appMenuPath, content);
+            if (integrateWithMenu)
+            {
+                // Also put it in a directory that app launchers index.
+                string appsDir = GetLinuxAppMenuDir();
+                Directory.CreateDirectory(appsDir);
+                string appMenuPath = Path.Combine(appsDir, Path.GetFileName(finalDesktopPath));
+                File.WriteAllText(appMenuPath, content);
+            }
         }
 
         private static string GetLinuxAppMenuDir() =>

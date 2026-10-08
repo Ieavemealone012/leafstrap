@@ -1,0 +1,25 @@
+<base:AvaloniaWindow
+    x:Class="Froststrap.UI.Elements.Dialogs.LanguageSelectorDialog"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="clr-namespace:Froststrap.UI.Elements.Base"
+    xmlns:vm="clr-namespace:Froststrap.UI.ViewModels.Dialogs"
+    xmlns:resources="using:Froststrap.Resources"
+    Title="Leafstrap Installer"
+    Width="380" Height="242"
+    MinWidth="380" MinHeight="242"
+    MaxWidth="380" MaxHeight="242"
+    CanResize="False"
+    WindowStartupLocation="CenterScreen"
+    x:DataType="vm:LanguageSelectorViewModel">
+    <Grid RowDefinitions="*,Auto">
+        <StackPanel Margin="12" Spacing="4">
+            <TextBlock Text="{x:Static resources:Strings.Dialog_LanguageSelector_Header}" FontSize="20" FontWeight="SemiBold" />
+            <TextBlock Text="{x:Static resources:Strings.Dialog_LanguageSelector_Subtext}" TextWrapping="Wrap" Margin="0,0,0,8" />
+            <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" />
+        </StackPanel>
+        <Border Grid.Row="1" Padding="14" Background="{DynamicResource ControlFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlElevationBorderBrush}" BorderThickness="0,1,0,0">
+            <Button Width="100" HorizontalAlignment="Right" Content="{x:Static resources:Strings.Common_OK}" Command="{Binding SetLocaleCommand}" />
+        </Border>
+    </Grid>
+</base:AvaloniaWindow>

@@ -1,42 +1,19 @@
-﻿// SPDX-FileCopyrightText: 2026 Froststrap
-//
-// SPDX-License-Identifier: MPL-2.0
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
+using Froststrap.UI.Elements.Onboarding;
 
 namespace Froststrap.UI.ViewModels.Onboarding
 {
-    internal class Page3ViewModel : NotifyPropertyChangedViewModel
+    internal sealed class Page3ViewModel
     {
-        public Page3ViewModel()
+        public ICommand LaunchSettingsCommand => new RelayCommand(() => Finish(NextAction.LaunchSettings));
+        public ICommand LaunchRobloxCommand => new RelayCommand(() => Finish(NextAction.LaunchRoblox));
+
+        private static void Finish(NextAction action)
         {
-            App.Cookies.StateChanged += (_, state) => CookieLoadingFailed = state is not (CookieState.Success or CookieState.Unknown);
+            if (MainWindow.Instance is not { } window) return;
+            window.CloseAction = action;
+            window.Close();
         }
-
-
-        public static bool CookieLoadingFinished => true;
-
-        public bool CookieAccess
-        {
-            get => App.Settings.Prop.AllowCookieAccess;
-            set
-            {
-                App.Settings.Prop.AllowCookieAccess = value;
-                if (value)
-                    Task.Run(App.Cookies.LoadCookies);
-
-                OnPropertyChanged(nameof(CookieAccess));
-            }
-        }
-
-        private bool _cookieLoadingFailed;
-        public bool CookieLoadingFailed
-        {
-            get => _cookieLoadingFailed;
-            set
-            {
-                _cookieLoadingFailed = value;
-                OnPropertyChanged(nameof(CookieLoadingFailed));
-            }
-        }
-
     }
 }

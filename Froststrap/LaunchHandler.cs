@@ -142,9 +142,19 @@ namespace Froststrap
 
         public static void LaunchOnboarding()
         {
-            var mainWindow = new MainWindow();
+            var languageWindow = new LanguageSelectorDialog();
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop2)
-                desktop2.MainWindow = mainWindow;
+                desktop2.MainWindow = languageWindow;
+
+            languageWindow.Closed += (_, _) => ShowInstallerWindow();
+            languageWindow.Show();
+        }
+
+        private static void ShowInstallerWindow()
+        {
+            var mainWindow = new MainWindow();
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                desktop.MainWindow = mainWindow;
 
             mainWindow.Loaded += (s, e) =>
             {

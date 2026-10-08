@@ -1,7 +1,3 @@
-﻿// SPDX-FileCopyrightText: 2026 Froststrap
-//
-// SPDX-License-Identifier: MPL-2.0
-
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
@@ -9,33 +5,20 @@ namespace Froststrap.UI.ViewModels.Onboarding
 {
     internal class MainWindowViewModel : NotifyPropertyChangedViewModel
     {
-        public string NextButtonText { get; private set; } = Strings.Common_Next;
+        private string _nextButtonText = Strings.Common_Next;
         private bool _backButtonEnabled;
-        public bool BackButtonEnabled
-        {
-            get => _backButtonEnabled;
-            set
-            {
-                _backButtonEnabled = value;
-                OnPropertyChanged(nameof(BackButtonEnabled));
-            }
-        }
-        public int ButtonWidth { get; } = Locale.CurrentCulture.Name.StartsWith("bg", StringComparison.Ordinal) ? 112 : 96;
+        private bool _nextButtonEnabled = true;
 
-        public ICommand BackPageCommand => new RelayCommand(BackPage);
+        public string NextButtonText { get => _nextButtonText; private set => SetProperty(ref _nextButtonText, value); }
+        public bool BackButtonEnabled { get => _backButtonEnabled; set => SetProperty(ref _backButtonEnabled, value); }
+        public bool NextButtonEnabled { get => _nextButtonEnabled; set => SetProperty(ref _nextButtonEnabled, value); }
 
-        public ICommand NextPageCommand => new RelayCommand(NextPage);
+        public ICommand BackPageCommand => new RelayCommand(() => PageRequest?.Invoke(this, "back"));
+        public ICommand NextPageCommand => new RelayCommand(() => PageRequest?.Invoke(this, "next"));
+        public ICommand CloseWindowCommand => new RelayCommand(() => CloseWindowRequest?.Invoke(this, EventArgs.Empty));
 
         public event EventHandler<string>? PageRequest;
-
-        public void SetNextButtonText(string text)
-        {
-            NextButtonText = text;
-            OnPropertyChanged(nameof(NextButtonText));
-        }
-
-        private void BackPage() => PageRequest?.Invoke(this, "back");
-
-        private void NextPage() => PageRequest?.Invoke(this, "next");
+        public event EventHandler? CloseWindowRequest;
+        public void SetNextButtonText(string text) => NextButtonText = text;
     }
 }

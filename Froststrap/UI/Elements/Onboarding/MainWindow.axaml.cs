@@ -1,7 +1,5 @@
-// SPDX-FileCopyrightText: 2026 Froststrap
-//
-// SPDX-License-Identifier: MPL-2.0
-
+using Avalonia.Controls;
+using Avalonia.Media;
 using Froststrap.UI.Elements.Base;
 using Froststrap.UI.Elements.Onboarding.Pages;
 using Froststrap.UI.Utility;
@@ -15,17 +13,7 @@ namespace Froststrap.UI.Elements.Onboarding
         internal readonly MainWindowViewModel _viewModel = new();
         private Type _currentPage = typeof(Page1);
         private bool _isInitialLoad = true;
-
-        private readonly List<Type> _pages =
-        [
-            typeof(Page1),
-            typeof(Page2),
-            typeof(Page3),
-            typeof(Page4),
-            typeof(Page5),
-            typeof(Page6),
-            typeof(Page7)
-        ];
+        private readonly List<Type> _pages = [typeof(Page1), typeof(Page2), typeof(Page3)];
 
         public Func<Task<bool>>? NextPageCallback;
         public NextAction CloseAction = NextAction.Terminate;
@@ -37,91 +25,69 @@ namespace Froststrap.UI.Elements.Onboarding
             DataContext = _viewModel;
             InitializeComponent();
 
-            RootNavigation.PageCount = _pages.Count;
-
-            _viewModel.PageRequest += (_, type) =>
+            _viewModel.PageRequest += async (_, type) =>
             {
-                if (type == "next")
-                    NextPage();
-                else if (type == "back")
-                    BackPage();
+                if (type == "next") await NextPage();
+                else if (type == "back") BackPage();
             };
+            _viewModel.CloseWindowRequest += (_, _) => Close();
 
             Navigate(typeof(Page1));
-            App.Logger.Debug("Initializing onboarding window");
+            App.Logger.Debug("Initializing Leafstrap installer window");
         }
 
-        async void NextPage()
+        private async Task NextPage()
         {
-            if (NextPageCallback is not null && !await NextPageCallback())
-                return;
-
-            if (_currentPage == _pages.Last())
-            {
-                Close();
-                return;
-            }
-
+            if (NextPageCallback is not null && !await NextPageCallback()) return;
+            if (_currentPage == _pages.Last()) return;
             App.Settings.Save();
-            var nextPageIndex = _pages.IndexOf(_currentPage) + 1;
-            var page = _pages[nextPageIndex];
-            Navigate(page);
+            Navigate(_pages[_pages.IndexOf(_currentPage) + 1]);
         }
 
-        void BackPage()
+        private void BackPage()
         {
-            if (_currentPage == _pages.First())
-                return;
-
-            var prevPageIndex = _pages.IndexOf(_currentPage) - 1;
-            var page = _pages[prevPageIndex];
-            Navigate(page);
+            if (_currentPage == _pages.First()) return;
+            Navigate(_pages[_pages.IndexOf(_currentPage) - 1]);
         }
 
-        public void SetNextButtonText(string text) => _viewModel.SetNextButtonText(text);
-
-        #region Navigation methods
+        public void SetNextButtonEnabled(bool enabled) => _viewModel.NextButtonEnabled = enabled;
 
         public bool Navigate(Type pageType)
         {
             int currentIndex = _pages.IndexOf(_currentPage);
             int newIndex = _pages.IndexOf(pageType);
-            bool goingForward = newIndex > currentIndex;
-
-            if (!_isInitialLoad)
+            RootFrame.PageTransition = _isInitialLoad ? null : new FluentSlideTransition
             {
-                RootFrame.PageTransition = new FluentSlideTransition
-                {
-                    Direction = goingForward ? SlideDirection.Right : SlideDirection.Left,
-                    HorizontalOffset = 150,
-                    Duration = TimeSpan.FromMilliseconds(300)
-                };
-            }
-            else
-            {
-                RootFrame.PageTransition = null;
-                _isInitialLoad = false;
-            }
+                Direction = newIndex > currentIndex ? SlideDirection.Right : SlideDirection.Left,
+                HorizontalOffset = 80,
+                Duration = TimeSpan.FromMilliseconds(180)
+            };
+            _isInitialLoad = false;
 
             _currentPage = pageType;
             NextPageCallback = null;
+            RootFrame.Content = Activator.CreateInstance(pageType);
 
-            var pageInstance = Activator.CreateInstance(pageType);
-            RootFrame.Content = pageInstance;
+            int index = _pages.IndexOf(pageType);
+            PageTitle.Text = index switch { 0 => "Welcome", 1 => "Install", _ => "Completion" };
+            WelcomeMarker.IsVisible = index == 0;
+            InstallMarker.IsVisible = index == 1;
+            CompletionMarker.IsVisible = index == 2;
+            WelcomeNav.Background = index == 0 ? GetSelectedBrush() : Brushes.Transparent;
+            InstallNav.Background = index == 1 ? GetSelectedBrush() : Brushes.Transparent;
+            CompletionNav.Background = index == 2 ? GetSelectedBrush() : Brushes.Transparent;
 
-            var index = _pages.IndexOf(pageType);
-            if (index >= 0)
-                RootNavigation.CurrentIndex = index;
-
-            if (_currentPage == _pages.Last())
-                SetNextButtonText(Strings.Common_Finish);
-            else
-                SetNextButtonText(Strings.Common_Next);
-
-            _viewModel.BackButtonEnabled = _currentPage != _pages.First();
-
+            _viewModel.BackButtonEnabled = index > 0 && index < 2;
+            _viewModel.NextButtonEnabled = index < 2;
+            _viewModel.SetNextButtonText(index == 1 ? Strings.Common_Install : Strings.Common_Next);
             return true;
         }
-        #endregion
+
+        private static IBrush GetSelectedBrush()
+        {
+            if (Avalonia.Application.Current?.TryGetResource("SubtleFillColorSecondaryBrush", null, out var value) == true && value is IBrush brush)
+                return brush;
+            return Brushes.Transparent;
+        }
     }
 }

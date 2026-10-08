@@ -1,9 +1,4 @@
-<!--
-SPDX-FileCopyrightText: 2026 Froststrap
-
-SPDX-License-Identifier: MPL-2.0
--->
-
+<!-- Leafstrap's compact, Windows-matched installer shell. -->
 <base:AvaloniaWindow
     x:Class="Froststrap.UI.Elements.Onboarding.MainWindow"
     xmlns="https://github.com/avaloniaui"
@@ -11,52 +6,56 @@ SPDX-License-Identifier: MPL-2.0
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:base="clr-namespace:Froststrap.UI.Elements.Base"
-    xmlns:controls="clr-namespace:Froststrap.UI.Elements.Controls"
-    xmlns:resources="using:Froststrap.Resources"
     xmlns:vm="clr-namespace:Froststrap.UI.ViewModels.Onboarding"
+    xmlns:resources="using:Froststrap.Resources"
+    xmlns:ic="clr-namespace:LucideAvalonia;assembly=LucideAvalonia"
     mc:Ignorable="d"
-    Title="{x:Static resources:Strings.Onboarding_Title}"
-    Width="700"
-    Height="550"
-    MinWidth="640"
-    MinHeight="480"
+    Title="Leafstrap Installer"
+    Width="840" Height="540"
+    MinWidth="840" MinHeight="540"
+    MaxWidth="840" MaxHeight="540"
     x:DataType="vm:MainWindowViewModel"
     CanResize="False"
-    WindowStartupLocation="CenterScreen">
+    WindowStartupLocation="CenterScreen"
+    Icon="/Leafstrap.ico">
 
-    <Grid RowDefinitions="*,Auto,Auto">
-        <Border Grid.Row="0" Padding="24,16,24,0" Margin="0,8,0,0">
-            <TransitioningContentControl
-                x:Name="RootFrame"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" />
-        </Border>
+    <Grid RowDefinitions="*,Auto">
+        <Grid Grid.Row="0" ColumnDefinitions="200,*" Margin="12,12,0,0">
+            <StackPanel Grid.Column="0" Margin="0,0,12,0" Spacing="4">
+                <Border x:Name="WelcomeNav" Padding="12,10" CornerRadius="4">
+                    <Grid ColumnDefinitions="4,24,*">
+                        <Border x:Name="WelcomeMarker" Width="4" CornerRadius="2" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+                        <ic:Lucide Grid.Column="1" Icon="CircleArrowRight" Width="16" Height="16" VerticalAlignment="Center" StrokeBrush="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Grid.Column="2" Text="Welcome" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="Medium" />
+                    </Grid>
+                </Border>
+                <Border x:Name="InstallNav" Padding="12,10" CornerRadius="4">
+                    <Grid ColumnDefinitions="4,24,*">
+                        <Border x:Name="InstallMarker" Width="4" CornerRadius="2" IsVisible="False" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+                        <ic:Lucide Grid.Column="1" Icon="CircleArrowRight" Width="16" Height="16" VerticalAlignment="Center" StrokeBrush="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Grid.Column="2" Text="Install" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="Medium" />
+                    </Grid>
+                </Border>
+                <Border x:Name="CompletionNav" Padding="12,10" CornerRadius="4">
+                    <Grid ColumnDefinitions="4,24,*">
+                        <Border x:Name="CompletionMarker" Width="4" CornerRadius="2" IsVisible="False" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+                        <ic:Lucide Grid.Column="1" Icon="CircleArrowRight" Width="16" Height="16" VerticalAlignment="Center" StrokeBrush="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Grid.Column="2" Text="Completion" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="Medium" />
+                    </Grid>
+                </Border>
+            </StackPanel>
 
-        <controls:StepIndicator
-            Grid.Row="1"
-            x:Name="RootNavigation"
-            HorizontalAlignment="Stretch"
-            PageCount="3"
-            CurrentIndex="0" />
+            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+                <TextBlock x:Name="PageTitle" Text="Welcome" FontSize="26" FontWeight="SemiBold" Margin="0,4,14,8" />
+                <TransitioningContentControl x:Name="RootFrame" Grid.Row="1" Margin="0,0,14,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+            </Grid>
+        </Grid>
 
-        <Border
-            Grid.Row="2"
-            Padding="18"
-            Background="{DynamicResource ControlFillColorDefaultBrush}"
-            BorderBrush="{DynamicResource ControlElevationBorderBrush}"
-            BorderThickness="0,1,0,0">
-            <Grid ColumnDefinitions="Auto,*,Auto">
-                <Button
-                    Width="{Binding ButtonWidth}"
-                    Margin="0,0,8,0"
-                    Command="{Binding BackPageCommand}"
-                    IsEnabled="{Binding BackButtonEnabled}"
-                    Content="{x:Static resources:Strings.Common_Back}"/>
-                <Button
-                    Grid.Column="2"
-                    Width="{Binding ButtonWidth}"
-                    Command="{Binding NextPageCommand}"
-                    Content="{Binding NextButtonText}"/>
+        <Border Grid.Row="1" Padding="14,10" Background="{DynamicResource ControlFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlElevationBorderBrush}" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                <Button Grid.Column="1" Width="96" Margin="0,0,4,0" Command="{Binding BackPageCommand}" IsEnabled="{Binding BackButtonEnabled}" Content="{x:Static resources:Strings.Common_Back}" />
+                <Button Grid.Column="2" Width="96" Margin="4,0,4,0" Command="{Binding NextPageCommand}" IsEnabled="{Binding NextButtonEnabled}" Content="{Binding NextButtonText}" />
+                <Button Grid.Column="3" Width="96" Margin="12,0,0,0" Command="{Binding CloseWindowCommand}" Content="{x:Static resources:Strings.Common_Close}" />
             </Grid>
         </Border>
     </Grid>
