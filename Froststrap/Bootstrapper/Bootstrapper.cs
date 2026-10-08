@@ -1971,45 +1971,176 @@ internal partial class Bootstrapper : IDisposable
         return line[installingIndex..].Trim();
     }
 
-    private async Task<bool> EnsureSoberInstalledAsync()
+    private static async Task<bool> IsFlatpakAvailableAsync()
     {
-        SetStatus(Strings.Bootstrapper_Status_CheckingFlatpak);
-
-        var flatpakCheck = new ProcessStartInfo
+        try
         {
-            FileName = "flatpak",
-            Arguments = "--version",
-            UseShellExecute = false,
-            CreateNoWindow = true
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "flatpak",
+                Arguments = "--version",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            if (process is null)
+                return false;
+
+            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            return process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task<bool> OfferFlatpakInstallationAsync()
+    {
+        var installers = new (string Path, string[] Arguments, string Name)[]
+        {
+            ("/usr/bin/pacman", ["-S", "--needed", "--noconfirm", "flatpak"], "pacman"),
+            ("/usr/bin/apt-get", ["install", "-y", "flatpak"], "APT"),
+            ("/usr/bin/dnf", ["install", "-y", "flatpak"], "DNF"),
+            ("/usr/bin/zypper", ["--non-interactive", "install", "flatpak"], "Zypper"),
+            ("/usr/bin/xbps-install", ["-Sy", "flatpak"], "XBPS"),
+            ("/usr/bin/eopkg", ["install", "-y", "flatpak"], "eopkg")
         };
+
+        var installer = installers.FirstOrDefault(candidate => File.Exists(candidate.Path));
+        if (string.IsNullOrEmpty(installer.Path))
+        {
+            await Frontend.ShowMessageBox(
+                "Flatpak is required on Linux, but Leafstrap could not identify a supported package manager.\n\nPlease install the 'flatpak' package using your distribution's package manager, then try again.",
+                MessageBoxImage.Error);
+            return false;
+        }
+
+        if (!File.Exists("/usr/bin/pkexec"))
+        {
+            await Frontend.ShowMessageBox(
+                $"Flatpak is required on Linux. Leafstrap found {installer.Name}, but the graphical privilege helper 'pkexec' is unavailable.\n\nPlease install Flatpak manually, then try again.",
+                MessageBoxImage.Error);
+            return false;
+        }
+
+        var result = await Frontend.ShowMessageBox(
+            $"Flatpak is required to install and launch Sober.\n\nWould you like Leafstrap to install Flatpak now using {installer.Name}? Your system will show its normal administrator authentication prompt. Leafstrap never receives or stores your password.",
+            MessageBoxImage.Question,
+            MessageBoxButton.YesNo,
+            MessageBoxResult.Yes);
+
+        if (result != MessageBoxResult.Yes)
+            return false;
+
+        SetStatus("Installing Flatpak...");
+        App.Logger.Info($"Requesting Flatpak installation through pkexec and {installer.Name}.");
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "/usr/bin/pkexec",
+            UseShellExecute = false
+        };
+        startInfo.ArgumentList.Add(installer.Path);
+        foreach (string argument in installer.Arguments)
+            startInfo.ArgumentList.Add(argument);
 
         try
         {
-            using var checkProcess = Process.Start(flatpakCheck);
-            _ = checkProcess ?? throw new InvalidOperationException("Failed to start flatpak process.");
+            using var process = Process.Start(startInfo);
+            if (process is null)
+                throw new InvalidOperationException("The Flatpak installer could not be started.");
 
-            await checkProcess.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));
-
-            if (checkProcess.ExitCode != 0)
-                throw new InvalidOperationException("Flatpak returned a non-zero exit code.");
+            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromMinutes(10));
+            if (process.ExitCode != 0)
+            {
+                await Frontend.ShowMessageBox(
+                    "Flatpak was not installed. The administrator prompt may have been cancelled, or the package manager reported an error.",
+                    MessageBoxImage.Error);
+                return false;
+            }
         }
-        catch (TimeoutException ex)
+        catch (TimeoutException)
         {
-            App.Logger.Error(ex, "Timed out while checking Flatpak installation.");
             await Frontend.ShowMessageBox(
-                "Timed out while checking Flatpak installation. Please make sure Flatpak is working and try again.",
-                MessageBoxImage.Error
-            );
-            App.Terminate(ErrorCode.ERROR_CANCELLED);
+                "The Flatpak installation did not finish within ten minutes. Please finish or cancel the package-manager operation, then try again.",
+                MessageBoxImage.Error);
             return false;
         }
         catch (Exception ex)
         {
-            App.Logger.Error(ex, "Flatpak not found.");
+            App.Logger.Error(ex, "Failed to install Flatpak.");
             await Frontend.ShowMessageBox(
-                "Flatpak is required on Linux.\n\nPlease install Flatpak first, then launch Leafstrap again.",
-                MessageBoxImage.Error
-            );
+                $"Leafstrap could not install Flatpak.\n\n{ex.Message}",
+                MessageBoxImage.Error);
+            return false;
+        }
+
+        if (!await IsFlatpakAvailableAsync())
+        {
+            await Frontend.ShowMessageBox(
+                "The package manager finished, but the 'flatpak' command is still unavailable. Please restart Leafstrap after confirming Flatpak is installed.",
+                MessageBoxImage.Error);
+            return false;
+        }
+
+        App.Logger.Info("Flatpak installation completed successfully.");
+        return true;
+    }
+
+    private static async Task<bool> EnsureFlathubRemoteAsync()
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "flatpak",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add("remote-add");
+        startInfo.ArgumentList.Add("--user");
+        startInfo.ArgumentList.Add("--if-not-exists");
+        startInfo.ArgumentList.Add("flathub");
+        startInfo.ArgumentList.Add("https://flathub.org/repo/flathub.flatpakrepo");
+
+        try
+        {
+            using var process = Process.Start(startInfo);
+            if (process is null)
+                return false;
+
+            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromMinutes(2));
+            if (process.ExitCode == 0)
+                return true;
+
+            string error = await process.StandardError.ReadToEndAsync();
+            App.Logger.Error($"Failed to configure Flathub: {error}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            App.Logger.Error(ex, "Failed to configure Flathub.");
+            return false;
+        }
+    }
+
+    private async Task<bool> EnsureSoberInstalledAsync()
+    {
+        SetStatus(Strings.Bootstrapper_Status_CheckingFlatpak);
+
+        if (!await IsFlatpakAvailableAsync() && !await OfferFlatpakInstallationAsync())
+        {
+            App.Terminate(ErrorCode.ERROR_CANCELLED);
+            return false;
+        }
+
+        SetStatus("Configuring Flathub...");
+        if (!await EnsureFlathubRemoteAsync())
+        {
+            await Frontend.ShowMessageBox(
+                "Flatpak is installed, but Leafstrap could not configure the Flathub repository required for Sober.\n\nTry running:\nflatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo",
+                MessageBoxImage.Error);
             App.Terminate(ErrorCode.ERROR_CANCELLED);
             return false;
         }
@@ -2053,12 +2184,17 @@ internal partial class Bootstrapper : IDisposable
         var installStartInfo = new ProcessStartInfo
         {
             FileName = "flatpak",
-            Arguments = $"install --noninteractive flathub {SoberFlatpakId}",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true
         };
+        installStartInfo.ArgumentList.Add("install");
+        installStartInfo.ArgumentList.Add("--user");
+        installStartInfo.ArgumentList.Add("--noninteractive");
+        installStartInfo.ArgumentList.Add("--assumeyes");
+        installStartInfo.ArgumentList.Add("flathub");
+        installStartInfo.ArgumentList.Add(SoberFlatpakId);
 
         using var installProcess = Process.Start(installStartInfo);
         if (installProcess is null)
