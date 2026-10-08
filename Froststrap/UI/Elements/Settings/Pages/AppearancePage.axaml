@@ -164,7 +164,7 @@ SPDX-License-Identifier: MPL-2.0
                 <controls:OptionControl
                     Header="{x:Static resources:Strings.Menu_Appearance_WindowsBackdrop_Title}"
                     Description="{x:Static resources:Strings.Menu_Appearance_WindowsBackdrop_Description}"
-                    IsVisible="{x:Static gv:GlobalViewModel.IsWindows}">
+                    IsEnabled="{x:Static gv:GlobalViewModel.IsWindows}">
                     <ComboBox
                         MinWidth="200"
                         Margin="5,0,0,0"
@@ -317,7 +317,7 @@ SPDX-License-Identifier: MPL-2.0
 
                 <controls:CardExpander Classes="NoUserExpansion"
                                        IsExpanded="{Binding CustomThemesExpanded, Mode=OneWay}"
-                                       Header="{x:Static resources:Strings.Menu_Appearance_Launcher_Title}"
+                                       Header="Launcher"
                                        Description="{x:Static resources:Strings.Menu_Appearance_Launcher_Description}">
 
                     <controls:CardExpander.HeaderContent>
@@ -448,7 +448,7 @@ SPDX-License-Identifier: MPL-2.0
                     </Grid>
                 </controls:CardExpander>
 
-                <controls:OptionControl x:Name="IconSelector" Header="{x:Static resources:Strings.Menu_Appearance_Icon_Title}" Description="{x:Static resources:Strings.Menu_Appearance_Icon_Description}" HelpLink="https://wiki.fishstrap.app/manual/appearance/#custom-icons">
+                <controls:OptionControl x:Name="IconSelector" Header="Icon" Description="{x:Static resources:Strings.Menu_Appearance_Icon_Description}" HelpLink="https://wiki.fishstrap.app/manual/appearance/#custom-icons">
                     <Grid Width="200" HorizontalAlignment="Right" ColumnDefinitions="*, Auto">
                         <ComboBox
                             HorizontalAlignment="Stretch"

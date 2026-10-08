@@ -281,6 +281,17 @@ namespace Froststrap.UI.Elements.Settings
             this.FindControl<SearchDialog>("SearchOverlay")?.Show();
         }
 
+        private void SettingsSearch_TextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
+        {
+            if (_viewModel == null)
+                return;
+
+            // Build the same global settings index used by the full search dialog,
+            // then let the compact Windows-style box display its inline results.
+            if (!string.IsNullOrWhiteSpace(_viewModel.SearchBar.SearchQuery))
+                StartIndexingAllPagesIfNeeded();
+        }
+
         private void UpdateSelectedNavigationViewItem(string selectedPage)
         {
             var navView = this.FindControl<FANavigationView>("NavView");

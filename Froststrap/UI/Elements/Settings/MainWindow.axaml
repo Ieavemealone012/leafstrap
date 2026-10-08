@@ -44,35 +44,60 @@ SPDX-License-Identifier: MPL-2.0
             PaneDisplayMode="Left">
 
             <ui:FANavigationView.PaneToggleRowContent>
-                <controls:IconButton Icon="Search"
-                                     Click="OpenSearchOverlay"
-                                     Width="40"
-                                     Height="36"
-                                     Padding="0"
-                                     Margin="4,2"
-                                     Background="{DynamicResource NavigationViewItemBackground}"
-                                     Foreground="{DynamicResource NavigationViewItemForeground}"
-                                     BorderThickness="0"
-                                     BorderBrush="Transparent"
-                                     CornerRadius="{DynamicResource ControlCornerRadius}"
-                                     IconSize="14">
-                    <controls:IconButton.Styles>
-                        <Style Selector="controls|IconButton">
-                            <Style Selector="^:pointerover">
-                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewButtonForegroundPointerOver}" />
-                            </Style>
-                            <Style Selector="^:pointerover /template/ Border#PART_LayoutRoot">
-                                <Setter Property="Background" Value="{DynamicResource NavigationViewButtonBackgroundPointerOver}" />
-                            </Style>
-                            <Style Selector="^:pressed">
-                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewButtonForegroundPressed}" />
-                            </Style>
-                            <Style Selector="^:pressed /template/ Border#PART_LayoutRoot">
-                                <Setter Property="Background" Value="{DynamicResource NavigationViewButtonBackgroundPressed}" />
-                            </Style>
-                        </Style>
-                    </controls:IconButton.Styles>
-                </controls:IconButton>
+                <!-- Keep the desktop search surface identical to the Windows build. -->
+                <Grid Width="215" Margin="4,2">
+                    <TextBox x:Name="SettingsSearchBox"
+                             Height="36"
+                             Padding="10,0,34,0"
+                             VerticalContentAlignment="Center"
+                             PlaceholderText="Search settings"
+                             Text="{Binding SearchBar.SearchQuery, Mode=TwoWay}"
+                             TextChanged="SettingsSearch_TextChanged" />
+                    <ic:Lucide Icon="Search"
+                               Width="15"
+                               Height="15"
+                               Margin="0,0,11,0"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               IsHitTestVisible="False" />
+                    <Popup IsOpen="{Binding SearchBar.IsDropDownOpen}"
+                           Placement="Bottom"
+                           PlacementTarget="{Binding #SettingsSearchBox}"
+                           IsLightDismissEnabled="True">
+                        <Border Width="360"
+                                MaxHeight="430"
+                                Padding="6"
+                                Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                BoxShadow="0 8 24 0 #40000000">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding SearchBar.FilteredSearchResults}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Padding="10,8"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Left"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SearchBar.SearchResultSelectedCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Description}"
+                                                               FontSize="11"
+                                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
             </ui:FANavigationView.PaneToggleRowContent>
 
             <ui:FANavigationView.MenuItems>
@@ -90,13 +115,13 @@ SPDX-License-Identifier: MPL-2.0
 
                 <ui:FANavigationViewItem Content="{x:Static resources:Strings.Common_Deployment}" Tag="channels">
                     <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="HardDriveUpload" />
+                        <ic:Lucide Icon="FolderArchive" />
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
-                <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_Mods_Title}" Tag="mods">
+                <ui:FANavigationViewItem Content="Mods" Tag="mods">
                     <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="SlidersVertical" />
+                        <ic:Lucide Icon="Wrench" />
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
@@ -108,13 +133,13 @@ SPDX-License-Identifier: MPL-2.0
 
                 <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_Appearance_Title}" Tag="appearance">
                     <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="Palette" />
+                        <ic:Lucide Icon="PaintbrushVertical" />
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
                 <ui:FANavigationViewItem Content="{x:Static resources:Strings.Menu_RegionSelector_Title}" Tag="regionselector">
                     <ui:FANavigationViewItem.Icon>
-                        <ic:Lucide Icon="Globe" />
+                        <ic:Lucide Icon="Earth" />
                     </ui:FANavigationViewItem.Icon>
                 </ui:FANavigationViewItem>
 
@@ -142,7 +167,7 @@ SPDX-License-Identifier: MPL-2.0
                             BorderThickness="0"
                             Command="{Binding OpenAboutCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <ic:Lucide Icon="CircleAlert" Width="18" Height="18" />
+                            <ic:Lucide Icon="Info" Width="18" Height="18" />
                             <TextBlock VerticalAlignment="Center" Text="{x:Static resources:Strings.Menu_About_Title}" />
                         </StackPanel>
                     </Button>
@@ -265,35 +290,20 @@ SPDX-License-Identifier: MPL-2.0
                             Orientation="Horizontal"
                             Spacing="10"
                             VerticalAlignment="Center">
-                    <ToggleSwitch IsChecked="{Binding TestModeEnabled, Mode=TwoWay}" />
+                    <ToggleSwitch IsChecked="{Binding TestModeEnabled, Mode=TwoWay}"
+                                  OnContent=""
+                                  OffContent="" />
                     <TextBlock VerticalAlignment="Center"
                                FontWeight="SemiBold"
                                Text="{x:Static resources:Strings.Menu_TestMode}" />
                 </StackPanel>
-                <controls:IconButton Grid.Column="2"
-                                     FontWeight="SemiBold"
-                                     Height="36"
-                                     Padding="20,0"
-                                     Classes="DropDownButton Primary"
-                                     Command="{Binding SaveAndLaunchSettingsCommand}"
-                                     Content="{Binding LaunchButtonText}">
-                    <controls:IconButton.Flyout>
-                        <MenuFlyout Placement="TopEdgeAlignedRight">
-                            <MenuItem Header="{Binding PlayerMenuItemText}" Command="{Binding SetLaunchModeCommand}"
-                                      CommandParameter="{x:Static enums:LaunchMode.Player}">
-                                <MenuItem.Icon>
-                                    <ic:Lucide Icon="Gamepad2" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="{x:Static resources:Strings.Common_Studio}" Command="{Binding SetLaunchModeCommand}"
-                                      CommandParameter="{x:Static enums:LaunchMode.Studio}">
-                                <MenuItem.Icon>
-                                    <ic:Lucide Icon="Wrench" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                        </MenuFlyout>
-                    </controls:IconButton.Flyout>
-                </controls:IconButton>
+                <Button Grid.Column="2"
+                        FontWeight="SemiBold"
+                        Height="36"
+                        Padding="20,0"
+                        Classes="accent"
+                        Command="{Binding SaveAndLaunchSettingsCommand}"
+                        Content="Save and Launch" />
                 <Button
                     FontWeight="SemiBold"
                     Grid.Column="3"

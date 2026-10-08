@@ -630,7 +630,7 @@ Would you like to upgrade your currently installed version?</value>
     <value>Choose what icon Leafstrap should use.</value>
   </data>
   <data name="Menu.Appearance.Icon.Title" xml:space="preserve">
-    <value>Bootstrapper Icon</value>
+    <value>Icon</value>
   </data>
   <data name="Menu.Appearance.Preview" xml:space="preserve">
     <value>Preview</value>
@@ -639,7 +639,7 @@ Would you like to upgrade your currently installed version?</value>
     <value>Choose a launch screen style. Note: Dark theme isn’t supported for Legacy or Vista, For more custom launchers, visit the official Leafstrap Discord server.</value>
   </data>
   <data name="Menu.Appearance.Launcher.Title" xml:space="preserve">
-    <value>Bootstrapper Style</value>
+    <value>Launcher</value>
   </data>
   <data name="Menu.Appearance.Title" xml:space="preserve">
     <value>Appearance</value>
@@ -1695,7 +1695,7 @@ The app will close this window when sign-in completes.</value>
     <value>Save and Install</value>
   </data>
   <data name="Menu.Mods.Title" xml:space="preserve">
-    <value>My Mods</value>
+    <value>Mods</value>
   </data>
   <data name="Menu.ModGenerator.Title" xml:space="preserve">
     <value>Mod Generator</value>
