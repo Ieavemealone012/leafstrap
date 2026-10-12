@@ -20,7 +20,10 @@ public partial class Build : FalloutBuild
     void PublishLinux(string outputDirectory)
     {
         var version = GetVersion();
-        var rpmVersion = version.Replace('+', '_');
+        // RPM reserves '-' for separating the package release, so represent
+        // SemVer prerelease separators with '~' (which also sorts before the
+        // corresponding stable version).
+        var rpmVersion = version.Replace('-', '~').Replace('+', '_');
         Log.Debug("Detected build version as {ver}", version);
         Log.Debug("Detected RPM version as {ver}", rpmVersion);
 
