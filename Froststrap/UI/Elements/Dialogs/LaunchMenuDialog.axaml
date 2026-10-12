@@ -11,89 +11,109 @@ SPDX-License-Identifier: MPL-2.0
                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                      xmlns:controls="clr-namespace:Froststrap.UI.Elements.Controls"
-                     xmlns:resources="clr-namespace:Froststrap.Resources"
                      xmlns:models="clr-namespace:Froststrap.UI.ViewModels"
                      xmlns:vm="clr-namespace:Froststrap.UI.ViewModels.Dialogs"
                      xmlns:ic="clr-namespace:LucideAvalonia;assembly=LucideAvalonia"
-                     xmlns:lucideEnums="clr-namespace:LucideAvalonia.Enum;assembly=LucideAvalonia"
-                     xmlns:enums="clr-namespace:Froststrap.Enums"
                      x:DataType="vm:LaunchMenuViewModel"
                      Title="Leafstrap"
-                     Width="420"
+                     Width="580"
                      SizeToContent="Height"
                      CanResize="False"
                      WindowStartupLocation="CenterScreen"
                      mc:Ignorable="d">
 
-    <Grid>
-        <StackPanel Margin="32,0,32,32">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16" Margin="0,8,0,24">
-                <Image Width="64" Height="64" Source="avares://Leafstrap/Leafstrap.png"
-                       RenderOptions.BitmapInterpolationMode="HighQuality"/>
+    <!-- Cross-platform counterpart of the Windows Leafstrap launch menu. -->
+    <Grid Margin="20,14,20,18" ColumnDefinitions="260,*" ColumnSpacing="12">
+        <Grid Grid.Column="0" RowDefinitions="*,Auto" MinHeight="200">
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="14">
+                <Image Width="72" Height="72"
+                       Source="avares://Leafstrap/Leafstrap.png"
+                       RenderOptions.BitmapInterpolationMode="HighQuality" />
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Name="LaunchTitle" Text="Leafstrap" FontSize="28" FontWeight="Bold" />
+                    <TextBlock Name="LaunchTitle"
+                               Text="Leafstrap"
+                               FontSize="24"
+                               FontWeight="Bold" />
                     <TextBlock Text="{Binding Version}"
-                               FontSize="13"
+                               FontSize="12"
                                Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                 </StackPanel>
             </StackPanel>
 
-            <controls:IconButton Classes="DropDownButton"
-                                 Margin="0,0,0,8"
-                                 HorizontalAlignment="Stretch"
-                                 Height="52"
-                                 CornerRadius="8"
-                                 FontWeight="SemiBold"
-                                 FontSize="14"
-                                 Command="{Binding LaunchCommand}"
-                                 IconSize="24"
-                                 Icon="{Binding LaunchButtonIcon}"
-                                 Content="{Binding LaunchButtonText}"
-                                 Padding="16,0">
-                <controls:IconButton.Flyout>
-                    <MenuFlyout Placement="BottomEdgeAlignedRight">
-                        <MenuItem Header="{Binding PlayerMenuItemText}"
-                                  Command="{Binding SetLaunchModeCommand}"
-                                  CommandParameter="{x:Static enums:LaunchMode.Player}">
-                            <MenuItem.Icon>
-                                <ic:Lucide Icon="Gamepad2" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="{x:Static resources:Strings.Common_Studio}"
-                                  Command="{Binding SetLaunchModeCommand}"
-                                  CommandParameter="{x:Static enums:LaunchMode.Studio}">
-                            <MenuItem.Icon>
-                                <ic:Lucide Icon="Wrench" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuFlyout>
-                </controls:IconButton.Flyout>
-            </controls:IconButton>
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Spacing="2">
+                <controls:IconButton Icon="CircleQuestionMark"
+                                     Content="About Leafstrap"
+                                     Command="{Binding LaunchAboutCommand}"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                <controls:IconButton Icon="MessageCircleMore"
+                                     Content="Join our Discord server"
+                                     Command="{x:Static models:GlobalViewModel.OpenWebpageCommand}"
+                                     CommandParameter="https://discord.gg/KdR9vpRcUN"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Column="1" Spacing="8">
+            <Button Height="62"
+                    Padding="16,0"
+                    HorizontalContentAlignment="Stretch"
+                    Command="{Binding LaunchRobloxCommand}">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <ic:Lucide Icon="Gamepad2" Width="22" Height="22" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Margin="16,0,0,0" Text="Launch Roblox" FontSize="14" VerticalAlignment="Center" />
+                    <ic:Lucide Grid.Column="2" Icon="ChevronRight" Width="16" Height="16" VerticalAlignment="Center" />
+                </Grid>
+            </Button>
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                <controls:IconButton
-                    Grid.Column="0"
-                    Icon="Settings"
-                    Content="{x:Static resources:Strings.Common_Settings}"
-                    CornerRadius="8"
-                    BorderThickness="0"
-                    Height="56"
-                    Command="{Binding LaunchSettingsCommand}"
-                    IconSize="24"
-                    Padding="12,10" />
+                <Button Grid.Column="0"
+                        Height="54"
+                        Padding="14,0"
+                        HorizontalContentAlignment="Stretch"
+                        Command="{Binding LaunchSettingsCommand}">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <ic:Lucide Icon="Settings" Width="21" Height="21" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Margin="12,0,0,0" Text="Settings" VerticalAlignment="Center" />
+                        <ic:Lucide Grid.Column="2" Icon="ChevronRight" Width="14" Height="14" VerticalAlignment="Center" />
+                    </Grid>
+                </Button>
 
-                <controls:IconButton
-                    Grid.Column="1"
-                    Icon="MessageCircleMore"
-                    Content="Discord"
-                    CornerRadius="8"
-                    Height="56"
-                    BorderThickness="0"
-                    IconSize="24"
-                    Command="{x:Static models:GlobalViewModel.OpenWebpageCommand}"
-                    CommandParameter="https://discord.gg/KdR9vpRcUN"
-                    Padding="12,10" />
+                <Button Grid.Column="1"
+                        Height="54"
+                        Padding="14,0"
+                        HorizontalContentAlignment="Stretch"
+                        Command="{Binding LaunchRobloxStudioCommand}">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <ic:Lucide Icon="Wrench" Width="21" Height="21" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Margin="12,0,0,0" Text="Studio" VerticalAlignment="Center" />
+                        <ic:Lucide Grid.Column="2" Icon="ChevronRight" Width="14" Height="14" VerticalAlignment="Center" />
+                    </Grid>
+                </Button>
             </Grid>
+
+            <Button Height="70"
+                    Margin="0,10,0,0"
+                    Padding="16,0"
+                    HorizontalContentAlignment="Stretch"
+                    Command="{x:Static models:GlobalViewModel.OpenWebpageCommand}"
+                    CommandParameter="https://github.com/Ieavemealone012/leafstrap/wiki">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <ic:Lucide Icon="BookOpenText" Width="22" Height="22" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Having an issue?" FontSize="14" />
+                        <TextBlock Text="See the Wiki for help" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                    <ic:Lucide Grid.Column="2" Icon="ChevronRight" Width="16" Height="16" VerticalAlignment="Center" />
+                </Grid>
+            </Button>
         </StackPanel>
     </Grid>
 </base:AvaloniaWindow>

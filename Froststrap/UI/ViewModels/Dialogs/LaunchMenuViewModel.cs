@@ -69,8 +69,8 @@ namespace Froststrap.UI.ViewModels.Dialogs
 
         public string LaunchButtonIcon => SelectedLaunchMode == LaunchMode.Player ? "Gamepad2" : "Wrench";
 
-        public ICommand LaunchCommand { get; }
-        public ICommand SetLaunchModeCommand { get; }
+        public ICommand LaunchRobloxCommand { get; }
+        public ICommand LaunchRobloxStudioCommand { get; }
         public ICommand LaunchSettingsCommand { get; }
         public ICommand LaunchAboutCommand { get; }
 
@@ -78,16 +78,17 @@ namespace Froststrap.UI.ViewModels.Dialogs
 
         public LaunchMenuViewModel()
         {
-            LaunchCommand = new RelayCommand(ExecuteLaunch);
-            SetLaunchModeCommand = new RelayCommand<LaunchMode>(mode => SelectedLaunchMode = mode);
+            LaunchRobloxCommand = new RelayCommand(() => ExecuteLaunch(LaunchMode.Player));
+            LaunchRobloxStudioCommand = new RelayCommand(() => ExecuteLaunch(LaunchMode.Studio));
             LaunchSettingsCommand = new RelayCommand(() => CloseWindowRequest?.Invoke(this, NextAction.LaunchSettings));
             LaunchAboutCommand = new RelayCommand(() => new Elements.About.MainWindow().Show());
             SelectedLaunchMode = App.State.Prop.LastLaunchMode;
         }
 
-        private void ExecuteLaunch()
+        private void ExecuteLaunch(LaunchMode mode)
         {
-            NextAction action = SelectedLaunchMode == LaunchMode.Player
+            SelectedLaunchMode = mode;
+            NextAction action = mode == LaunchMode.Player
                 ? NextAction.LaunchRoblox
                 : NextAction.LaunchRobloxStudio;
             CloseWindowRequest?.Invoke(this, action);

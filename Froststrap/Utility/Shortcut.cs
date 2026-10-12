@@ -307,6 +307,16 @@ namespace Froststrap.Utility
 
         private static void CreateLinuxShortcut(string exePath, string exeArgs, string desktopPath, string? iconPath, bool integrateWithMenu)
         {
+            // An AppImage executes its payload from /tmp/.mount_*. Desktop
+            // entries must point at the original persistent AppImage instead.
+            if (exePath.Contains("/.mount_", StringComparison.Ordinal))
+            {
+                string? appImage = Environment.GetEnvironmentVariable("LEAFSTRAP_APPIMAGE") ??
+                                   Environment.GetEnvironmentVariable("APPIMAGE");
+                if (!string.IsNullOrWhiteSpace(appImage) && File.Exists(appImage))
+                    exePath = Path.GetFullPath(appImage);
+            }
+
             string finalDesktopPath = Path.ChangeExtension(desktopPath, ".desktop");
             string appName = Path.GetFileNameWithoutExtension(finalDesktopPath);
             string icon = string.IsNullOrEmpty(iconPath) ? GetFroststrapIconPath() : iconPath;

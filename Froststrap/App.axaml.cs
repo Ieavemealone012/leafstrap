@@ -587,6 +587,14 @@ internal partial class App : Application
             LaunchSettings.OnboardingFlag.Active = true;
             Logger.Info("First launch detected, launching onboarding.");
         }
+        else if (OperatingSystem.IsLinux() && HasBrokenAppImageShortcut())
+        {
+            // Builds before 1.0.6 could save the temporary AppImage mount path
+            // in the desktop entry. Re-open onboarding once so the corrected
+            // installer can copy Leafstrap persistently and replace the entry.
+            LaunchSettings.OnboardingFlag.Active = true;
+            Logger.Info("Temporary AppImage shortcut detected, reopening installation.");
+        }
 
         _ = Task.Run(async () =>
         {
@@ -623,5 +631,33 @@ internal partial class App : Application
         await LaunchHandler.ProcessLaunchArgs();
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static bool HasBrokenAppImageShortcut()
+    {
+        string[] candidates =
+        [
+            Path.Combine(Paths.Desktop, "Leafstrap.desktop"),
+            Path.Combine(Paths.UserProfile, ".local", "share", "applications", "Leafstrap.desktop")
+        ];
+
+        foreach (string candidate in candidates)
+        {
+            try
+            {
+                if (File.Exists(candidate) && File.ReadAllText(candidate).Contains("/.mount_", StringComparison.Ordinal))
+                    return true;
+            }
+            catch (IOException ex)
+            {
+                Logger.Warn($"Could not inspect Linux shortcut {candidate}: {ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Logger.Warn($"Could not inspect Linux shortcut {candidate}: {ex.Message}");
+            }
+        }
+
+        return false;
     }
 }
