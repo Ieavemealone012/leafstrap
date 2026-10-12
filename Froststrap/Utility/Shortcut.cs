@@ -63,7 +63,7 @@ namespace Froststrap.Utility
             return lnkPath;
         }
 
-        public static async void Create(string exePath, string exeArgs, string lnkPath, string? iconPath = null, bool integrateWithLinuxMenu = true)
+        public static bool Create(string exePath, string exeArgs, string lnkPath, string? iconPath = null, bool integrateWithLinuxMenu = true)
         {
             string resolvedPath = ResolvePath(lnkPath);
 
@@ -78,17 +78,20 @@ namespace Froststrap.Utility
 
                 if (_loadStatus != GenericTriState.Successful)
                     _loadStatus = GenericTriState.Successful;
+
+                return true;
             }
             catch (Exception ex)
             {
                 App.Logger.Error($"Failed to create a shortcut for {resolvedPath}! {ex}");
 
                 if (_loadStatus == GenericTriState.Failed)
-                    return;
+                    return false;
 
                 _loadStatus = GenericTriState.Failed;
 
-                await Frontend.ShowMessageBox(Strings.Dialog_CannotCreateShortcuts, MessageBoxImage.Warning);
+                _ = Frontend.ShowMessageBox(Strings.Dialog_CannotCreateShortcuts, MessageBoxImage.Warning);
+                return false;
             }
         }
 
@@ -320,19 +323,40 @@ namespace Froststrap.Utility
             string finalDesktopPath = Path.ChangeExtension(desktopPath, ".desktop");
             string appName = Path.GetFileNameWithoutExtension(finalDesktopPath);
             string icon = string.IsNullOrEmpty(iconPath) ? GetFroststrapIconPath() : iconPath;
+            string? shortcutDirectory = Path.GetDirectoryName(finalDesktopPath);
+            if (string.IsNullOrWhiteSpace(shortcutDirectory))
+                throw new IOException("The shortcut location is invalid.");
+
+            Directory.CreateDirectory(shortcutDirectory);
+
+            string escapedExe = EscapeDesktopEntryValue(Path.GetFullPath(exePath));
+            string escapedArgs = exeArgs.Trim();
+            string workingDirectory = EscapeDesktopEntryValue(Path.GetDirectoryName(Path.GetFullPath(exePath)) ?? Paths.UserProfile);
+            string escapedIcon = EscapeDesktopEntryValue(icon);
 
             string content =
                 $"""
                 [Desktop Entry]
+                Version=1.0
                 Type=Application
                 Name={appName}
-                Exec="{exePath}" {exeArgs}
-                Icon={icon}
+                Comment=Launch Roblox through Leafstrap
+                Exec="{escapedExe}" {escapedArgs}
+                Path={workingDirectory}
+                Icon={escapedIcon}
                 Terminal=false
+                Categories=Game;Utility;
+                StartupNotify=true
+                X-KDE-StartupNotify=true
                 """;
 
             File.WriteAllText(finalDesktopPath, content);
-            Process.Start("chmod", $"+x \"{finalDesktopPath}\"")?.WaitForExit();
+            File.SetUnixFileMode(finalDesktopPath,
+                UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+                UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+
+            MarkDesktopShortcutTrusted(finalDesktopPath);
 
             if (integrateWithMenu)
             {
@@ -341,6 +365,66 @@ namespace Froststrap.Utility
                 Directory.CreateDirectory(appsDir);
                 string appMenuPath = Path.Combine(appsDir, Path.GetFileName(finalDesktopPath));
                 File.WriteAllText(appMenuPath, content);
+            }
+
+            if (integrateWithMenu || Path.GetFullPath(finalDesktopPath).StartsWith(Path.GetFullPath(GetLinuxAppMenuDir()), StringComparison.Ordinal))
+                RefreshLinuxApplicationMenu();
+        }
+
+        private static string EscapeDesktopEntryValue(string value) =>
+            value.Replace("\\", "\\\\", StringComparison.Ordinal)
+                 .Replace("\"", "\\\"", StringComparison.Ordinal);
+
+        private static void MarkDesktopShortcutTrusted(string desktopPath)
+        {
+            string? gio = FindExecutable("gio");
+            if (gio is null || !desktopPath.StartsWith(Path.GetFullPath(Paths.Desktop), StringComparison.Ordinal)) return;
+
+            TryRunDesktopCommand(gio, ["set", desktopPath, "metadata::trusted", "true"]);
+        }
+
+        private static void RefreshLinuxApplicationMenu()
+        {
+            string appsDir = GetLinuxAppMenuDir();
+            string? updateDesktopDatabase = FindExecutable("update-desktop-database");
+            if (updateDesktopDatabase is not null)
+                TryRunDesktopCommand(updateDesktopDatabase, [appsDir]);
+
+            // Plasma normally notices desktop entries automatically. Explicitly
+            // refresh its service cache so a newly installed AppImage appears
+            // immediately on both Plasma 5 and Plasma 6.
+            string? plasmaCache = FindExecutable("kbuildsycoca6") ?? FindExecutable("kbuildsycoca5");
+            if (plasmaCache is not null)
+                TryRunDesktopCommand(plasmaCache, ["--noincremental"]);
+        }
+
+        private static string? FindExecutable(string name)
+        {
+            foreach (string directory in (Environment.GetEnvironmentVariable("PATH") ?? string.Empty).Split(Path.PathSeparator))
+            {
+                if (string.IsNullOrWhiteSpace(directory)) continue;
+                string candidate = Path.Combine(directory, name);
+                if (File.Exists(candidate)) return candidate;
+            }
+
+            return null;
+        }
+
+        private static void TryRunDesktopCommand(string executable, IReadOnlyList<string> arguments)
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo(executable) { UseShellExecute = false };
+                foreach (string argument in arguments)
+                    startInfo.ArgumentList.Add(argument);
+                using Process? process = Process.Start(startInfo);
+                process?.WaitForExit(10_000);
+            }
+            catch (Exception ex)
+            {
+                // Cache/trust refreshes are best-effort; the desktop entry is
+                // still valid and will normally be discovered on the next login.
+                App.Logger.Warn($"Linux desktop integration command failed: {ex.Message}");
             }
         }
 

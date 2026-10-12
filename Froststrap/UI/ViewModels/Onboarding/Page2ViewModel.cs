@@ -52,10 +52,16 @@ namespace Froststrap.UI.ViewModels.Onboarding
 
                 string icon = Shortcut.GetFroststrapIconPath();
                 if (CreateDesktopShortcut)
-                    Shortcut.Create(executable, string.Empty, Path.Combine(Paths.Desktop, "Leafstrap"), icon, integrateWithLinuxMenu: false);
+                {
+                    if (!Shortcut.Create(executable, string.Empty, Path.Combine(Paths.Desktop, "Leafstrap"), icon, integrateWithLinuxMenu: false))
+                        throw new IOException("Leafstrap was copied, but its desktop shortcut could not be created.");
+                }
 
                 if (CreateMenuShortcut && OperatingSystem.IsLinux())
-                    Shortcut.Create(executable, string.Empty, Path.Combine(Paths.UserProfile, ".local", "share", "applications", "Leafstrap"), icon, integrateWithLinuxMenu: false);
+                {
+                    if (!Shortcut.Create(executable, string.Empty, Path.Combine(Paths.UserProfile, ".local", "share", "applications", "Leafstrap"), icon, integrateWithLinuxMenu: false))
+                        throw new IOException("Leafstrap was copied, but it could not be registered in the applications menu.");
+                }
 
                 App.Settings.Save();
                 await Task.CompletedTask;
