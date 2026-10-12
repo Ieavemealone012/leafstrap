@@ -43,7 +43,19 @@ internal partial class App : Application
 
     public static readonly BuildMetadataAttribute BuildMetadata = Assembly.GetExecutingAssembly().GetCustomAttribute<BuildMetadataAttribute>()!;
 
-    public static readonly string Version = Assembly.GetExecutingAssembly().GetName().Version!.ToString()[..^2];
+    public static readonly string Version = GetApplicationVersion();
+
+    private static string GetApplicationVersion()
+    {
+        string? informationalVersion = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion;
+
+        if (!string.IsNullOrWhiteSpace(informationalVersion))
+            return informationalVersion.Split('+', 2)[0];
+
+        return Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
+    }
 
     public static Bootstrapper? Bootstrapper { get; set; } = null!;
 
