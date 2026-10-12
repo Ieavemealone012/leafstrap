@@ -65,6 +65,9 @@ public partial class Build : FalloutBuild
         var appRun = """
             #!/bin/sh
             HERE="$(dirname "$(readlink -f "$0")")"
+            if [ -n "$APPIMAGE" ]; then
+                export LEAFSTRAP_APPIMAGE="$APPIMAGE"
+            fi
             exec "$HERE/usr/bin/Leafstrap" "$@"
             """;
 

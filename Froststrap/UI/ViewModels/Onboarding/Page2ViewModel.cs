@@ -8,7 +8,8 @@ namespace Froststrap.UI.ViewModels.Onboarding
 {
     internal sealed class Page2ViewModel : NotifyPropertyChangedViewModel
     {
-        private readonly string? _appImageSource = Environment.GetEnvironmentVariable("APPIMAGE");
+        private readonly string? _portableLinuxSource = ResolvePortableLinuxSource();
+        private readonly bool _portableLinuxSourceIsAppImage = HasAppImageSource();
         private string _installLocation;
         private string _errorMessage = string.Empty;
         private bool _createDesktopShortcut = true;
@@ -22,7 +23,7 @@ namespace Froststrap.UI.ViewModels.Onboarding
         }
 
         public string InstallLocation { get => _installLocation; set => SetProperty(ref _installLocation, value); }
-        public bool CanChangeLocation => OperatingSystem.IsLinux() && !string.IsNullOrWhiteSpace(_appImageSource);
+        public bool CanChangeLocation => OperatingSystem.IsLinux() && !string.IsNullOrWhiteSpace(_portableLinuxSource);
         public bool ShowPortableNotice => CanChangeLocation;
         public bool CreateDesktopShortcut { get => _createDesktopShortcut; set => SetProperty(ref _createDesktopShortcut, value); }
         public bool CreateMenuShortcut { get => _createMenuShortcut; set => SetProperty(ref _createMenuShortcut, value); }
@@ -36,13 +37,15 @@ namespace Froststrap.UI.ViewModels.Onboarding
             try
             {
                 string executable = Paths.Process;
-                if (CanChangeLocation && _appImageSource is not null)
+                if (CanChangeLocation && _portableLinuxSource is not null)
                 {
                     string? directory = Path.GetDirectoryName(InstallLocation);
                     if (string.IsNullOrWhiteSpace(directory)) throw new IOException("Choose a valid installation location.");
                     Directory.CreateDirectory(directory);
-                    if (!string.Equals(Path.GetFullPath(_appImageSource), Path.GetFullPath(InstallLocation), StringComparison.Ordinal))
-                        File.Copy(_appImageSource, InstallLocation, true);
+                    if (!File.Exists(_portableLinuxSource))
+                        throw new FileNotFoundException("The running Leafstrap package could not be found. Download the AppImage again and retry.", _portableLinuxSource);
+                    if (!string.Equals(Path.GetFullPath(_portableLinuxSource), Path.GetFullPath(InstallLocation), StringComparison.Ordinal))
+                        File.Copy(_portableLinuxSource, InstallLocation, true);
                     File.SetUnixFileMode(InstallLocation, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
                     executable = InstallLocation;
                 }
@@ -71,13 +74,13 @@ namespace Froststrap.UI.ViewModels.Onboarding
             if (MainWindow.Instance?.StorageProvider is not { } storage) return;
             var folders = await storage.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Choose Leafstrap installation folder", AllowMultiple = false });
             if (folders.Count > 0 && folders[0].TryGetLocalPath() is string path)
-                InstallLocation = Path.Combine(path, "Leafstrap.AppImage");
+                InstallLocation = Path.Combine(path, _portableLinuxSourceIsAppImage ? "Leafstrap.AppImage" : "Leafstrap");
         }
 
         private string GetDefaultInstallLocation()
         {
-            if (OperatingSystem.IsLinux() && !string.IsNullOrWhiteSpace(_appImageSource))
-                return Path.Combine(Paths.UserProfile, ".local", "bin", "Leafstrap.AppImage");
+            if (OperatingSystem.IsLinux() && !string.IsNullOrWhiteSpace(_portableLinuxSource))
+                return Path.Combine(Paths.UserProfile, ".local", "bin", _portableLinuxSourceIsAppImage ? "Leafstrap.AppImage" : "Leafstrap");
             if (OperatingSystem.IsMacOS())
                 return ResolveMacBundlePath();
             return Paths.Process;
@@ -92,6 +95,44 @@ namespace Froststrap.UI.ViewModels.Onboarding
                 directory = directory.Parent;
             }
             return Paths.Process;
+        }
+
+        private static bool HasAppImageSource() =>
+            GetExistingEnvironmentPath("LEAFSTRAP_APPIMAGE") is not null ||
+            GetExistingEnvironmentPath("APPIMAGE") is not null;
+
+        private static string? ResolvePortableLinuxSource()
+        {
+            if (!OperatingSystem.IsLinux()) return null;
+
+            // AppImage normally exposes APPIMAGE. AppRun also mirrors it to a
+            // Leafstrap-owned variable so desktop environments cannot lose it.
+            string? appImage = GetExistingEnvironmentPath("LEAFSTRAP_APPIMAGE") ??
+                               GetExistingEnvironmentPath("APPIMAGE");
+            if (appImage is not null) return appImage;
+
+            // Some AppImage launchers do not preserve APPIMAGE. The published
+            // executable is self-contained, so copying it out of the temporary
+            // mount is a safe fallback and prevents /tmp/.mount_* shortcuts.
+            string? appDir = Environment.GetEnvironmentVariable("APPDIR");
+            bool isTemporaryAppImage = !string.IsNullOrWhiteSpace(appDir) ||
+                                       Paths.Process.Contains("/.mount_", StringComparison.Ordinal);
+            return isTemporaryAppImage && File.Exists(Paths.Process) ? Paths.Process : null;
+        }
+
+        private static string? GetExistingEnvironmentPath(string variable)
+        {
+            string? value = Environment.GetEnvironmentVariable(variable);
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            try
+            {
+                string fullPath = Path.GetFullPath(value);
+                return File.Exists(fullPath) ? fullPath : null;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

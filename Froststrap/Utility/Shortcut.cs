@@ -67,9 +67,6 @@ namespace Froststrap.Utility
         {
             string resolvedPath = ResolvePath(lnkPath);
 
-            if (File.Exists(resolvedPath))
-                return;
-
             try
             {
                 if (OperatingSystem.IsWindows())
