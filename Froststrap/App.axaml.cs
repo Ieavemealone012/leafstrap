@@ -570,6 +570,12 @@ internal partial class App : Application
         Settings.Load();
         State.Load();
 
+        if (Settings.Prop.Theme == Theme.Halloween)
+        {
+            Settings.Prop.Theme = Theme.Default;
+            Settings.Save();
+        }
+
         // Early macOS test packages forced Leafstrap Green. Restore the intended
         // System Default once for those installs, then preserve the user's choice.
         if (!State.Prop.SystemDefaultThemeMigrationDone)

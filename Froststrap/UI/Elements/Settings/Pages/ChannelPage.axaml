@@ -227,6 +227,20 @@ SPDX-License-Identifier: MPL-2.0
                 <ToggleSwitch IsChecked="{Binding StaticDirectory, Mode=TwoWay}" />
             </controls:OptionControl>
 
+            <controls:OptionControl
+                Header="Roblox version"
+                Description="Choose the Roblox client distribution Leafstrap should use.">
+                <ComboBox MinWidth="200"
+                          ItemsSource="{Binding ClientDistributions.Keys}"
+                          SelectedItem="{Binding SelectedDistribution, Mode=TwoWay}" />
+            </controls:OptionControl>
+
+            <controls:OptionControl
+                Header="Roblox domain"
+                Description="Set the domain Roblox and Leafstrap use. Enter only trusted domains.">
+                <TextBox Width="200" Text="{Binding RobloxDomain, Mode=TwoWay}" />
+            </controls:OptionControl>
+
             <controls:CardExpander
                 Header="{x:Static resources:Strings.Menu_Deployment_PlayerChannel_Title}"
                 Description="{x:Static resources:Strings.Menu_Deployment_Channel_Description}"

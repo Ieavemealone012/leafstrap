@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
 using Froststrap.Integrations;
+using Froststrap.Enums.AppStoragePresets;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -13,6 +14,20 @@ namespace Froststrap.UI.ViewModels.Settings
 {
     internal class IntegrationsViewModel : NotifyPropertyChangedViewModel
     {
+        public static bool EnableRobloxBackgroundApp
+        {
+            get => App.Settings.Prop.EnableRobloxBackgroundApp;
+            set => App.Settings.Prop.EnableRobloxBackgroundApp = value;
+        }
+
+        public IReadOnlyCollection<RobloxTheme> RobloxThemes { get; } = RobloxThemeEx.Selections;
+
+        public static RobloxTheme RobloxTheme
+        {
+            get => App.Settings.Prop.RobloxTheme;
+            set => App.Settings.Prop.RobloxTheme = value;
+        }
+
         public ICommand AddIntegrationCommand => new RelayCommand(AddIntegration);
 
         public ICommand DeleteIntegrationCommand => new RelayCommand(DeleteIntegration);
@@ -248,8 +263,8 @@ namespace Froststrap.UI.ViewModels.Settings
         public static IReadOnlyDictionary<string, DiscordRPCStatusDisplay> DiscordStatusDisplayTypes =>
             new Dictionary<string, DiscordRPCStatusDisplay>
             {
-                { "Game name", DiscordRPCStatusDisplay.GameName },
-                { "Activity details", DiscordRPCStatusDisplay.ActivityDetails }
+                { "Name (Playing Roblox)", DiscordRPCStatusDisplay.GameName },
+                { "Details (Playing Game)", DiscordRPCStatusDisplay.ActivityDetails }
             };
 
         public static string SelectedDiscordStatusDisplay

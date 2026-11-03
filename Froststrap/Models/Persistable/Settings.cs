@@ -93,6 +93,7 @@ namespace Froststrap.Models.Persistable
         public bool AutomaticallyUpdateSober { get; set; } = true;
         public int MaxThreadDownload { get; set; } = 3;
         public string RobloxDomain { get; set; } = RobloxInterfaces.Deployment.DefaultRobloxDomain;
+        public DistributorType DistributorType { get; set; } = DistributorType.Global;
         public bool StaticDirectory { get; set; }
         public string PlayerChannel { get; set; } = RobloxInterfaces.Deployment.DefaultChannel;
         public string StudioChannel { get; set; } = RobloxInterfaces.Deployment.DefaultChannel;

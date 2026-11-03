@@ -6,8 +6,14 @@ namespace Froststrap.UI.ViewModels.Onboarding
 {
     internal sealed class Page3ViewModel
     {
-        public ICommand LaunchSettingsCommand => new RelayCommand(() => Finish(NextAction.LaunchSettings));
-        public ICommand LaunchRobloxCommand => new RelayCommand(() => Finish(NextAction.LaunchRoblox));
+        public ICommand LaunchSettingsCommand { get; }
+        public ICommand LaunchRobloxCommand { get; }
+
+        public Page3ViewModel()
+        {
+            LaunchSettingsCommand = new RelayCommand(() => Finish(NextAction.LaunchSettings));
+            LaunchRobloxCommand = new RelayCommand(() => Finish(NextAction.LaunchRoblox));
+        }
 
         private static void Finish(NextAction action)
         {

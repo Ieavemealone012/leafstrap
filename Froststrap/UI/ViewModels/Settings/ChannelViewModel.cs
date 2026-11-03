@@ -124,6 +124,40 @@ namespace Froststrap.UI.ViewModels.Settings
             }
         }
 
+        public IReadOnlyDictionary<string, DistributorType> ClientDistributions { get; } =
+            OperatingSystem.IsWindows()
+                ? new Dictionary<string, DistributorType>
+                {
+                    { "Global (Default)", DistributorType.Global },
+                    { "VNG (Việt Nam)", DistributorType.VNGGames }
+                }
+                : new Dictionary<string, DistributorType>
+                {
+                    { "Global (Default)", DistributorType.Global }
+                };
+
+        public string SelectedDistribution
+        {
+            get
+            {
+                DistributorType selected = OperatingSystem.IsWindows()
+                    ? App.Settings.Prop.DistributorType
+                    : DistributorType.Global;
+                return ClientDistributions.First(x => x.Value == selected).Key;
+            }
+            set
+            {
+                if (!ClientDistributions.TryGetValue(value, out DistributorType type))
+                    return;
+
+                App.Settings.Prop.DistributorType = type;
+                App.Settings.Prop.RobloxDomain = type == DistributorType.VNGGames
+                    ? "robloxapp.vnggames.com"
+                    : Deployment.DefaultRobloxDomain;
+                OnPropertyChanged(nameof(RobloxDomain));
+            }
+        }
+
         public bool TestModeEnabled
         {
             get => App.LaunchSettings.TestModeFlag.Active;

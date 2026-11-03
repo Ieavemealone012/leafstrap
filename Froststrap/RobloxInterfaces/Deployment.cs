@@ -118,6 +118,8 @@ namespace Froststrap.RobloxInterfaces
         public static string GetLocation(string resource)
         {
             string location = BaseUrl;
+            if (OperatingSystem.IsWindows() && App.Settings.Prop.DistributorType == DistributorType.VNGGames)
+                location += "/vng";
             if (!IsDefaultChannel)
                 location += "/channel/common";
             location += resource;
@@ -222,7 +224,7 @@ namespace Froststrap.RobloxInterfaces
             App.Logger.Info($"Getting deploy info for channel {channel}");
 
             string activeBinaryType = binaryTypeOverride ?? BinaryType;
-            string cacheKey = $"{channel}-{activeBinaryType}";
+            string cacheKey = $"{RobloxDomain}-{channel}-{activeBinaryType}";
 
             ClientVersion clientVersion;
 

@@ -56,8 +56,11 @@ internal class Updater
             string currentVer = App.Version;
             string releaseVer = releaseInfo.TagName;
             var versionComparison = Utility.Versioning.CompareVersions(currentVer, releaseVer);
+            bool correctedBetaVersion = currentVer.TrimStart('v').StartsWith("1.0.7-beta", StringComparison.OrdinalIgnoreCase)
+                && releaseVer.TrimStart('v').Equals("1.0.6", StringComparison.OrdinalIgnoreCase)
+                && !releaseInfo.Prerelease;
 
-            if (versionComparison == VersionComparison.Equal || versionComparison == VersionComparison.GreaterThan)
+            if (!correctedBetaVersion && (versionComparison == VersionComparison.Equal || versionComparison == VersionComparison.GreaterThan))
             {
                 App.Logger.Info($"No updates found. Current: {currentVer}, Latest: {releaseVer}");
                 return false;
