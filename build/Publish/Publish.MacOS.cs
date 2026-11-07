@@ -20,6 +20,9 @@ public partial class Build : FalloutBuild
         AbsolutePath entitlementsPath = macAppLocation / "Leafstrap.entitlements";
         AbsolutePath virtualDisplayDir = GitRoot / "backend" / "virtualdisplay";
         AbsolutePath dylibDest = (AbsolutePath)outputDirectory / "libvirtualdisplay.dylib";
+        var projectFile = XDocument.Load(GitRoot / "Froststrap" / "Froststrap.csproj");
+        string applicationVersion = projectFile.Descendants("Version").First().Value;
+        string appleVersion = applicationVersion.Split('-', 2)[0];
 
         if (!File.Exists(dylibDest))
         {
@@ -34,6 +37,7 @@ public partial class Build : FalloutBuild
         xcbProc.StartInfo.Arguments = $"-project {xcodeProjectLocation} " +
                                       "-target Leafstrap " +
                                       $"-configuration {Configuration} " +
+                                      $"MARKETING_VERSION={appleVersion} " +
                                       "CODE_SIGNING_ALLOWED=NO " +
                                       "build";
         xcbProc.StartInfo.UseShellExecute = false;
@@ -174,7 +178,8 @@ public partial class Build : FalloutBuild
         // Component packaging is Apple's supported path for a single app and
         // makes /Applications the unambiguous destination.
         var projectFile = XDocument.Load(GitRoot / "Froststrap" / "Froststrap.csproj");
-        string packageVersion = projectFile.Descendants("Version").First().Value;
+        string applicationVersion = projectFile.Descendants("Version").First().Value;
+        string packageVersion = applicationVersion.Split('-', 2)[0];
 
         RunProcess(
             "pkgbuild",

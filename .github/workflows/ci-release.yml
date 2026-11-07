@@ -72,11 +72,12 @@ jobs:
         run: |
           package=".build/publish/Leafstrap-macos-${{ matrix.arch }}.pkg"
           version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Froststrap/Froststrap.csproj | head -1)
+          apple_version="${version%%-*}"
           pkgutil --payload-files "$package" | grep -q "Leafstrap.app/Contents/Info.plist"
           pkgutil --expand-full "$package" expanded-package
-          grep -q "version=\"$version\"" expanded-package/PackageInfo
+          grep -q "version=\"$apple_version\"" expanded-package/PackageInfo
           grep -q 'install-location="/Applications"' expanded-package/PackageInfo
-          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' expanded-package/Payload/Leafstrap.app/Contents/Info.plist)" = "$version"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' expanded-package/Payload/Leafstrap.app/Contents/Info.plist)" = "$apple_version"
 
       - uses: actions/upload-artifact@v7
         with:
