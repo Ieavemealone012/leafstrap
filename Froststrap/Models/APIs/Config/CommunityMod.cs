@@ -122,8 +122,7 @@ namespace Froststrap.Models.APIs.Config
 
             try
             {
-                using var response = await App.HttpClient.GetAsync(new Uri(ThumbnailUrl));
-                if (!response.IsSuccessStatusCode) return;
+                using var response = await CommunityModAssetResolver.GetAsync(App.HttpClient, new Uri(ThumbnailUrl));
 
                 await using var stream = await response.Content.ReadAsStreamAsync();
                 var bitmap = await Task.Run(() => Bitmap.DecodeToWidth(stream, 600));

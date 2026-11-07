@@ -450,7 +450,14 @@ internal partial class App : Application
                     Logger.Info("No releases found");
                     return null;
                 }
-                return releases[0];
+                GithubRelease newest = releases[0];
+                foreach (var release in releases.Skip(1))
+                {
+                    if (Utility.Versioning.CompareVersions(newest.TagName, release.TagName) == VersionComparison.LessThan)
+                        newest = release;
+                }
+
+                return newest;
             }
             else
             {

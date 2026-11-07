@@ -375,8 +375,10 @@ namespace Froststrap.UI.ViewModels.Settings.Mods
 
         private static async Task DownloadFileAsync(string url, string path, IProgress<double> progress)
         {
-            using var response = await App.HttpClient.GetAsync(new Uri(url), HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
+            using var response = await CommunityModAssetResolver.GetAsync(
+                App.HttpClient,
+                new Uri(url),
+                HttpCompletionOption.ResponseHeadersRead);
             var totalBytes = response.Content.Headers.ContentLength ?? -1L;
 
             using var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
