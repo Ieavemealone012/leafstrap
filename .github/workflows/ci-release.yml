@@ -16,6 +16,7 @@ jobs:
     env:
       SIGN_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.CERT_P12_BASE64 != '' && secrets.CERT_P12_INSTALLER_BASE64 != '' && secrets.P12_PASSWORD != '' && secrets.DEVELOPER_ID_APP != '' && secrets.DEVELOPER_ID_INSTALLER != '' && secrets.APP_STORE_CONNECT_P8_CONTENT != '' && secrets.APPLE_KEY_ID != '' && secrets.APPLE_ISSUER_ID != '' }}
       LEAFSTRAP_SKIP_NESTED_RESTORE: "1"
+      LEAFSTRAP_SKIP_NESTED_PUBLISH: "1"
     strategy:
       fail-fast: false
       matrix:
@@ -37,6 +38,9 @@ jobs:
 
       - name: Restore application for macOS
         run: dotnet restore Froststrap/Froststrap.csproj -r osx-${{ matrix.arch }} --nologo
+
+      - name: Publish application for macOS
+        run: dotnet publish Froststrap/Froststrap.csproj -c Release -r osx-${{ matrix.arch }} -o .build/publish -p:PublishProfile=Publish-osx-${{ matrix.arch }} --no-restore --nologo
 
       - name: Remove stale signing keychain
         if: env.SIGN_RELEASE == 'true'
@@ -93,6 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       LEAFSTRAP_SKIP_NESTED_RESTORE: "1"
+      LEAFSTRAP_SKIP_NESTED_PUBLISH: "1"
 
     steps:
       - uses: actions/checkout@v7
@@ -106,6 +111,9 @@ jobs:
 
       - name: Restore application for Linux
         run: dotnet restore Froststrap/Froststrap.csproj -r linux-x64 --nologo
+
+      - name: Publish application for Linux
+        run: dotnet publish Froststrap/Froststrap.csproj -c Release -r linux-x64 -o .build/publish -p:PublishProfile=Publish-linux-x64 --no-restore --nologo
 
       - name: Install packaging tools
         run: sudo apt-get update && sudo apt-get install -y rpm

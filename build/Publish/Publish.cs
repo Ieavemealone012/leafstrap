@@ -43,39 +43,38 @@ public partial class Build : FalloutBuild
 
         Log.Information("Publishing for {Rid} using profile {Profile}", rid, publishProfile);
 
-        var process = new Process();
-        process.StartInfo.FileName = "dotnet";
-
-        process.StartInfo.Arguments = $"publish \"{project.Path}\" " +
-                                      $"-c {Configuration} " +
-                                      $"-r {rid} " +
-                                      $"-o \"{outputDirectory}\" " +
-                                      $"-p:PublishProfile=\"{publishProfile}\" " +
-                                      $"--no-restore " +
-                                      $"--nologo";
-
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError = true;
-        process.OutputDataReceived += (_, args) =>
+        if (Environment.GetEnvironmentVariable("LEAFSTRAP_SKIP_NESTED_PUBLISH") != "1")
         {
-            if (args.Data != null)
-                Console.WriteLine(args.Data);
-        };
-        process.ErrorDataReceived += (_, args) =>
-        {
-            if (args.Data != null)
-                Console.Error.WriteLine(args.Data);
-        };
+            var process = new Process();
+            process.StartInfo.FileName = "dotnet";
+            process.StartInfo.Arguments = $"publish \"{project.Path}\" " +
+                                          $"-c {Configuration} " +
+                                          $"-r {rid} " +
+                                          $"-o \"{outputDirectory}\" " +
+                                          $"-p:PublishProfile=\"{publishProfile}\" " +
+                                          $"--no-restore " +
+                                          $"--nologo";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.OutputDataReceived += (_, args) =>
+            {
+                if (args.Data != null)
+                    Console.WriteLine(args.Data);
+            };
+            process.ErrorDataReceived += (_, args) =>
+            {
+                if (args.Data != null)
+                    Console.Error.WriteLine(args.Data);
+            };
 
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-        process.WaitForExit();
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();
 
-        if (process.ExitCode != 0)
-        {
-            throw new Exception($"Publish failed for {rid} with exit code {process.ExitCode}");
+            if (process.ExitCode != 0)
+                throw new Exception($"Publish failed for {rid} with exit code {process.ExitCode}");
         }
 
         foreach (string file in Directory.EnumerateFiles(outputDirectory))
