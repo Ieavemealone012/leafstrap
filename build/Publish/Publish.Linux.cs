@@ -11,7 +11,7 @@ public partial class Build : FalloutBuild
     string GetVersion()
     {
         // This fork retains upstream Git tags, so git describe can report a
-        // Froststrap 2.x version even though the Leafstrap package is 1.0.6.
+        // Froststrap 2.x version even though the Leafstrap package has its own version.
         // Package metadata must come from Leafstrap's project version instead.
         var project = XDocument.Load(GitRoot / "Froststrap" / "Froststrap.csproj");
         return project.Descendants("Version").First().Value.Trim();
@@ -40,7 +40,18 @@ public partial class Build : FalloutBuild
 
         AbsolutePath icon = GitRoot / "Froststrap" / "Leafstrap.png";
 
-        File.Copy(publishDir / "Leafstrap", appDir / "usr" / "bin" / "Leafstrap", overwrite: true);
+        AbsolutePath executable = publishDir / "Leafstrap";
+        if (!File.Exists(executable))
+        {
+            // Publish profiles may honor their own PublishDir instead of the
+            // command-line output directory on some SDK/platform combinations.
+            executable = GitRoot / "Froststrap" / "bin" / Configuration / "net10.0" / "publish" / "linux-x64" / "Leafstrap";
+        }
+
+        if (!File.Exists(executable))
+            throw new FileNotFoundException("The published Leafstrap Linux executable was not produced.", executable);
+
+        File.Copy(executable, appDir / "usr" / "bin" / "Leafstrap", overwrite: true);
         File.Copy(icon, appDir / "leafstrap.png", overwrite: true);
         File.Copy(icon, appDir / "usr" / "share" / "icons" / "hicolor" / "512x512" / "apps" / "leafstrap.png", overwrite: true);
 
