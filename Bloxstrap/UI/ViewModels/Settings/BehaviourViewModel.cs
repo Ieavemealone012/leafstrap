@@ -1,20 +1,47 @@
-﻿using Bloxstrap.AppData;
-using Bloxstrap.RobloxInterfaces;
-
+﻿using System.Collections.ObjectModel;
 namespace Bloxstrap.UI.ViewModels.Settings
 {
     public class BehaviourViewModel : NotifyPropertyChangedViewModel
     {
-
         public BehaviourViewModel()
         {
-            
+            App.Cookies.StateChanged += (object? _, CookieState state) => CookieLoadingFailed = state != CookieState.Success && state != CookieState.Unknown;
         }
 
-        public bool MultiInstances
+        public ObservableCollection<ProcessPriorityOption> ProcessPriorityOptions { get; } = new ObservableCollection<ProcessPriorityOption>(Enum.GetValues(typeof(ProcessPriorityOption)).Cast<ProcessPriorityOption>());
+
+        public ProcessPriorityOption SelectedPriority
         {
-            get => App.Settings.Prop.MultiInstanceLaunching;
-            set => App.Settings.Prop.MultiInstanceLaunching = value;
+            get => App.Settings.Prop.SelectedProcessPriority;
+            set => App.Settings.Prop.SelectedProcessPriority = value;
+        }
+
+        public bool FramerateUncap
+        {
+            get
+            {
+                string? value = App.GlobalSettings.GetPresets("Rendering.FramerateCap");
+                return int.TryParse(value, out int framerate) && framerate > 240;
+            }
+            set
+            {
+                App.GlobalSettings.SetPresets("Rendering.FramerateCap", value ? "9999" : "-1");
+
+                if (value)
+                    App.GlobalSettings.SetReadOnly(true);
+            }
+        }
+
+        public bool BackgroundUpdates
+        {
+            get => App.Settings.Prop.BackgroundUpdatesEnabled;
+            set => App.Settings.Prop.BackgroundUpdatesEnabled = value;
+        }
+
+        public bool CloseCrashHandler
+        {
+            get => App.Settings.Prop.AutoCloseCrashHandler;
+            set => App.Settings.Prop.AutoCloseCrashHandler = value;
         }
 
         public bool ConfirmLaunches
@@ -23,10 +50,85 @@ namespace Bloxstrap.UI.ViewModels.Settings
             set => App.Settings.Prop.ConfirmLaunches = value;
         }
 
-        public bool ForceRobloxLanguage
+        public bool CookieLoadingFinished => true;
+
+        public bool CookieAccess
         {
-            get => App.Settings.Prop.ForceRobloxLanguage;
-            set => App.Settings.Prop.ForceRobloxLanguage = value;
+            get => App.Settings.Prop.AllowCookieAccess;
+            set
+            {
+                App.Settings.Prop.AllowCookieAccess = value;
+                if (value)
+                    Task.Run(App.Cookies.LoadCookies);
+
+                OnPropertyChanged(nameof(CookieAccess));
+            }
+        }
+
+        private bool _cookieLoadingFailed;
+        public bool CookieLoadingFailed
+        {
+            get => _cookieLoadingFailed;
+            set
+            {
+                _cookieLoadingFailed = value;
+                OnPropertyChanged(nameof(CookieLoadingFailed));
+            }
+        }
+
+        public CleanerOptions SelectedCleanUpMode
+        {
+            get => App.Settings.Prop.CleanerOptions;
+            set => App.Settings.Prop.CleanerOptions = value;
+        }
+
+        public IEnumerable<CleanerOptions> CleanerOptions { get; } = CleanerOptionsEx.Selections;
+
+        public CleanerOptions CleanerOption
+        {
+            get => App.Settings.Prop.CleanerOptions;
+            set
+            {
+                App.Settings.Prop.CleanerOptions = value;
+            }
+        }
+
+        private List<string> CleanerItems = App.Settings.Prop.CleanerDirectories;
+
+        public bool CleanerLogs
+        {
+            get => CleanerItems.Contains("RobloxLogs");
+            set
+            {
+                if (value)
+                    CleanerItems.Add("RobloxLogs");
+                else
+                    CleanerItems.Remove("RobloxLogs");
+            }
+        }
+
+        public bool CleanerCache
+        {
+            get => CleanerItems.Contains("RobloxCache");
+            set
+            {
+                if (value)
+                    CleanerItems.Add("RobloxCache");
+                else
+                    CleanerItems.Remove("RobloxCache");
+            }
+        }
+
+        public bool CleanerFroststrap
+        {
+            get => CleanerItems.Contains("FroststrapLogs");
+            set
+            {
+                if (value)
+                    CleanerItems.Add("FroststrapLogs");
+                else
+                    CleanerItems.Remove("FroststrapLogs");
+            }
         }
     }
 }

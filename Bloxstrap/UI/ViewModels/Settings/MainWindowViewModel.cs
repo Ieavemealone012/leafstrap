@@ -1,24 +1,23 @@
-﻿using System.Windows;
+﻿using CommunityToolkit.Mvvm.Input;
+using System.Windows;
 using System.Windows.Input;
-using Bloxstrap.UI.Elements.About;
-using CommunityToolkit.Mvvm.Input;
 
 namespace Bloxstrap.UI.ViewModels.Settings
 {
     public class MainWindowViewModel : NotifyPropertyChangedViewModel
     {
         public ICommand OpenAboutCommand => new RelayCommand(OpenAbout);
-        
+        public ICommand OpenAccountManagerCommand => new RelayCommand(OpenAccountManager);
         public ICommand SaveSettingsCommand => new RelayCommand(SaveSettings);
-
-        public ICommand SaveAndLaunchSettingsCommand => new RelayCommand(SaveAndLaunchSettings);
-
-
+        public ICommand SaveAndLaunchPlayerCommand => new RelayCommand(() => SaveAndLaunch("player"));
+        public ICommand SaveAndLaunchStudioCommand => new RelayCommand(() => SaveAndLaunch("studio"));
+        public ICommand RestartAppCommand => new RelayCommand(RestartApp);
         public ICommand CloseWindowCommand => new RelayCommand(CloseWindow);
 
         public EventHandler? RequestSaveNoticeEvent;
-
         public EventHandler? RequestCloseWindowEvent;
+        public bool GBSEnabled = App.GlobalSettings.Loaded;
+        public event EventHandler? SettingsSaved;
 
         public bool TestModeEnabled
         {
@@ -28,7 +27,6 @@ namespace Bloxstrap.UI.ViewModels.Settings
                 if (value && !App.State.Prop.TestModeWarningShown)
                 {
                     var result = Frontend.ShowMessageBox(Strings.Menu_TestMode_Prompt, MessageBoxImage.Information, MessageBoxButton.YesNo);
-
                     if (result != MessageBoxResult.Yes)
                         return;
 
@@ -39,17 +37,47 @@ namespace Bloxstrap.UI.ViewModels.Settings
             }
         }
 
-        private void OpenAbout() => new MainWindow().ShowDialog();
+        public bool IsSidebarExpanded
+        {
+            get => App.Settings.Prop.IsNavigationSidebarExpanded;
+            set
+            {
+                if (App.Settings.Prop.IsNavigationSidebarExpanded == value)
+                    return;
+
+                App.Settings.Prop.IsNavigationSidebarExpanded = value;
+                OnPropertyChanged(nameof(IsSidebarExpanded));
+            }
+        }
+
+        private void OpenAbout()
+        {
+            App.FrostRPC?.SetDialog("About");
+
+            new Elements.About.MainWindow().ShowDialog();
+
+            App.FrostRPC?.ClearDialog();
+        }
+
+        private void OpenAccountManager()
+        {
+            App.FrostRPC?.SetDialog("Account Manager");
+
+            new Elements.AccountManagers.MainWindow().ShowDialog();
+
+            App.FrostRPC?.ClearDialog();
+        }
 
         private void CloseWindow() => RequestCloseWindowEvent?.Invoke(this, EventArgs.Empty);
 
-        private void SaveSettings()
+        public void SaveSettings()
         {
             const string LOG_IDENT = "MainWindowViewModel::SaveSettings";
 
             App.Settings.Save();
             App.State.Save();
             App.FastFlags.Save();
+            App.GlobalSettings.Save();
 
             foreach (var pair in App.PendingSettingTasks)
             {
@@ -66,12 +94,33 @@ namespace Bloxstrap.UI.ViewModels.Settings
 
             RequestSaveNoticeEvent?.Invoke(this, EventArgs.Empty);
         }
-        public void SaveAndLaunchSettings()
+
+        public void SaveAndLaunch(string mode)
         {
             SaveSettings();
-            if (!App.LaunchSettings.TestModeFlag.Active) // test mode already launches an instance
-                LaunchHandler.LaunchRoblox(LaunchMode.Player);
 
+            if (!App.LaunchSettings.TestModeFlag.Active)
+                Process.Start(Paths.Application, $"-{mode.ToLower()}");
+            else
+                CloseWindow();
+        }
+
+        private async void RestartApp()
+        {
+            SaveSettings();
+
+            SettingsSaved?.Invoke(this, EventArgs.Empty);
+
+            await Task.Delay(750);
+
+            var startInfo = new ProcessStartInfo(Environment.ProcessPath!)
+            {
+                Arguments = "-menu"
+            };
+
+            Process.Start(startInfo);
+
+            App.FrostRPC?.Dispose();
             CloseWindow();
         }
     }

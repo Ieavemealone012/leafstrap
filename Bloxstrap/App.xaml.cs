@@ -1,10 +1,15 @@
+using Bloxstrap.Integrations;
+using Microsoft.Win32;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Shell;
 using System.Windows.Threading;
-
-using Microsoft.Win32;
+using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
+using Wpf.Ui.Hardware;
 
 namespace Bloxstrap
 {
@@ -18,35 +23,49 @@ namespace Bloxstrap
 #else
         public const string ProjectName = "Leafstrap";
 #endif
-        public const string ProjectOwner = "Ieavemealone012"; // leavemealone012
-        public const string ProjectRepository = "Ieavemealone012/leafstrap"; // Ieavemealone012/leafstrap
+        public const string ProjectOwner = "Ieavemealone012";
+        public const string ProjectRepository = "Ieavemealone012/leafstrap";
         public const string ProjectDownloadLink = "https://github.com/Ieavemealone012/leafstrap/releases";
         public const string ProjectHelpLink = "https://github.com/bloxstraplabs/bloxstrap/wiki";
         public const string ProjectSupportLink = "https://github.com/Ieavemealone012/leafstrap/issues/new";
+        public const string ProjectRemoteDataLink = "https://raw.githubusercontent.com/RealMeddsam/config/refs/heads/main/Data.json";
 
         public const string RobloxPlayerAppName = "RobloxPlayerBeta.exe";
         public const string RobloxStudioAppName = "RobloxStudioBeta.exe";
-        // one day ill add studio support
-        public const string RobloxAnselAppName = "eurotrucks2.exe";
 
         // simple shorthand for extremely frequently used and long string - this goes under HKCU
         public const string UninstallKey = $@"Software\Microsoft\Windows\CurrentVersion\Uninstall\{ProjectName}";
 
         public const string ApisKey = $"Software\\{ProjectName}";
-
         public static LaunchSettings LaunchSettings { get; private set; } = null!;
 
         public static BuildMetadataAttribute BuildMetadata = Assembly.GetExecutingAssembly().GetCustomAttribute<BuildMetadataAttribute>()!;
 
-        public static string Version = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+        public static string Version = GetApplicationVersion();
+
+        private static string GetApplicationVersion()
+        {
+            string? informationalVersion = Assembly.GetExecutingAssembly()
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion;
+
+            if (!string.IsNullOrWhiteSpace(informationalVersion))
+                return informationalVersion.Split('+', 2)[0];
+
+            return Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
+        }
 
         public static Bootstrapper? Bootstrapper { get; set; } = null!;
+
+        public FroststrapRichPresence RichPresence { get; private set; } = null!;
 
         public static bool IsActionBuild => !String.IsNullOrEmpty(BuildMetadata.CommitRef);
 
         public static bool IsProductionBuild => IsActionBuild && BuildMetadata.CommitRef.StartsWith("tag", StringComparison.Ordinal);
 
-        public static bool IsStudioVisible => !String.IsNullOrEmpty(App.State.Prop.Studio.VersionGuid);
+        public static bool IsPlayerInstalled => App.PlayerState.IsSaved && !String.IsNullOrEmpty(App.PlayerState.Prop.VersionGuid);
+
+        public static bool IsStudioInstalled => App.StudioState.IsSaved && !String.IsNullOrEmpty(App.StudioState.Prop.VersionGuid);
 
         public static readonly MD5 MD5Provider = MD5.Create();
 
@@ -54,20 +73,29 @@ namespace Bloxstrap
 
         public static readonly Dictionary<string, BaseTask> PendingSettingTasks = new();
 
+        // Disambiguate Settings so we use the persistable Settings (Bloxstrap.Models.Persistable.Settings),
+        // not the auto-generated Properties.Settings which doesn't contain the clicker fields.
         public static readonly JsonManager<Settings> Settings = new();
 
         public static readonly JsonManager<State> State = new();
 
+        public static readonly LazyJsonManager<DistributionState> PlayerState = new(nameof(PlayerState));
+
+        public static readonly LazyJsonManager<DistributionState> StudioState = new(nameof(StudioState));
+
+        public static readonly RemoteDataManager RemoteData = new();
+
         public static readonly FastFlagManager FastFlags = new();
 
-        public static readonly HttpClient HttpClient = new(
-            new HttpClientLoggingHandler(
-                new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }
-            )
-        );
+        public static readonly GBSEditor GlobalSettings = new();
+
+        public static readonly CookiesManager Cookies = new();
+
+        public static readonly HttpClient HttpClient = new(new HttpClientLoggingHandler(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }));
+
 
         private static bool _showingExceptionDialog = false;
-        
+
         public static void Terminate(ErrorCode exitCode = ErrorCode.ERROR_SUCCESS)
         {
             int exitCodeNum = (int)exitCode;
@@ -113,8 +141,6 @@ namespace Bloxstrap
 
             _showingExceptionDialog = true;
 
-            SendLog();
-
             if (Bootstrapper?.Dialog != null)
             {
                 if (Bootstrapper.Dialog.TaskbarProgressValue == 0)
@@ -128,21 +154,103 @@ namespace Bloxstrap
             Terminate(ErrorCode.ERROR_INSTALL_FAILURE);
         }
 
-        public static async Task<GithubRelease?> GetLatestRelease()
+        public static FroststrapRichPresence? FrostRPC
+        {
+            get => (Current as App)?.RichPresence;
+            set
+            {
+                if (Current is App app)
+                    app.RichPresence = value!;
+            }
+        }
+
+        public static void WindowsBackdrop()
+        {
+            Current.Dispatcher.Invoke(() =>
+            {
+                var backdropType = Settings.Prop.SelectedBackdrop;
+
+                // Mica is only supported on Windows 11. On Windows 10, asking
+                // WPF UI for Mica can expose the system accent as a solid fill.
+                if (backdropType == WindowsBackdrops.Mica && !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+                    backdropType = WindowsBackdrops.None;
+
+                ApplyBackdropToAllWindows(backdropType);
+            });
+        }
+
+        private static void ApplyBackdropToAllWindows(WindowsBackdrops backdropType)
+        {
+            var wpfBackdrop = backdropType switch
+            {
+                WindowsBackdrops.None => BackgroundType.None,
+                WindowsBackdrops.Mica => BackgroundType.Mica,
+                WindowsBackdrops.Acrylic => BackgroundType.Acrylic,
+                WindowsBackdrops.Aero => BackgroundType.Aero,
+                _ => BackgroundType.None
+            };
+
+            foreach (Window window in Current.Windows)
+            {
+                if (window is UiWindow uiWindow)
+                {
+                    bool isTransparentBackdrop = (wpfBackdrop == BackgroundType.Acrylic || wpfBackdrop == BackgroundType.Aero);
+
+                    uiWindow.AllowsTransparency = isTransparentBackdrop;
+
+                    uiWindow.WindowStyle = isTransparentBackdrop
+                        ? WindowStyle.None
+                        : WindowStyle.SingleBorderWindow;
+
+                    uiWindow.WindowBackdropType = wpfBackdrop;
+                }
+            }
+        }
+
+        public void ApplyCustomFontToWindow(Window window)
+        {
+            var fontPath = Settings.Prop.CustomFontPath;
+            if (string.IsNullOrWhiteSpace(fontPath) || !File.Exists(fontPath))
+                return;
+
+            var font = FontManager.LoadFontFromFile(fontPath);
+            if (font != null)
+            {
+                window.FontFamily = font;
+            }
+        }
+
+        public static async Task<GithubRelease?> GetLatestRelease(bool includePreRelease = false)
         {
             const string LOG_IDENT = "App::GetLatestRelease";
 
             try
             {
-                var releaseInfo = await Http.GetJson<GithubRelease>($"https://api.github.com/repos/{ProjectRepository}/releases/latest");
+                string url = includePreRelease ? $"https://api.github.com/repos/{ProjectRepository}/releases" : $"https://api.github.com/repos/{ProjectRepository}/releases/latest";
 
-                if (releaseInfo is null || releaseInfo.Assets is null)
+                if (includePreRelease)
                 {
-                    Logger.WriteLine(LOG_IDENT, "Encountered invalid data");
-                    return null;
-                }
+                    var releases = await Http.GetJson<List<GithubRelease>>(url);
 
-                return releaseInfo;
+                    if (releases is null || releases.Count == 0)
+                    {
+                        Logger.WriteLine(LOG_IDENT, "No releases found in the repository.");
+                        return null;
+                    }
+
+                    GithubRelease newest = releases[0];
+                    foreach (var release in releases.Skip(1))
+                    {
+                        if (Utilities.CompareVersions(newest.TagName, release.TagName) == VersionComparison.LessThan)
+                            newest = release;
+                    }
+
+                    return newest;
+                }
+                else
+                {
+                    return await Http.GetJson<GithubRelease>(url);
+                }
             }
             catch (Exception ex)
             {
@@ -152,23 +260,18 @@ namespace Bloxstrap
             return null;
         }
 
-        public static void SendLog()
-        {
-            
-        }
-
         public static void AssertWindowsOSVersion()
         {
             const string LOG_IDENT = "App::AssertWindowsOSVersion";
 
             int major = Environment.OSVersion.Version.Major;
-            if (major < 10) // Windows 10 and newer only - this is because of the way we use certain APIs and also to prevent new installs on unsupported OS versions
+            if (major < 10) // Windows 10 and newer only
             {
                 Logger.WriteLine(LOG_IDENT, $"Detected unsupported Windows version ({Environment.OSVersion.Version}).");
 
                 if (!LaunchSettings.QuietFlag.Active)
                     Frontend.ShowMessageBox(Strings.App_OSDeprecation_Win7_81, MessageBoxImage.Error);
-                
+
                 Terminate(ErrorCode.ERROR_INVALID_FUNCTION);
             }
         }
@@ -181,27 +284,37 @@ namespace Bloxstrap
 
             base.OnStartup(e);
 
+            bool fontApplied = FontManager.ApplySavedCustomFont();
+
+            if (fontApplied)
+                Logger.WriteLine(LOG_IDENT, "Custom font applied at startup.");
+
+            foreach (Window window in Application.Current.Windows)
+            {
+                ApplyCustomFontToWindow(window);
+            }
+
             Logger.WriteLine(LOG_IDENT, $"Starting {ProjectName} v{Version}");
 
-            string userAgent = $"{ProjectName}/{Version}";
+            var userAgent = new StringBuilder($"{ProjectName}/{Version}");
 
             if (IsActionBuild)
             {
                 Logger.WriteLine(LOG_IDENT, $"Compiled {BuildMetadata.Timestamp.ToFriendlyString()} from commit {BuildMetadata.CommitHash} ({BuildMetadata.CommitRef})");
 
                 if (IsProductionBuild)
-                    userAgent += $" (Production)";
+                    userAgent.Append(" (Production)");
                 else
-                    userAgent += $" (Artifact {BuildMetadata.CommitHash}, {BuildMetadata.CommitRef})";
+                    userAgent.Append($" (Artifact {BuildMetadata.CommitHash}, {BuildMetadata.CommitRef})");
             }
             else
             {
                 Logger.WriteLine(LOG_IDENT, $"Compiled {BuildMetadata.Timestamp.ToFriendlyString()} from {BuildMetadata.Machine}");
 
 #if QA_BUILD
-                userAgent += " (QA)";
+                userAgent.Append(" (QA)");
 #else
-                userAgent += $" (Build {Convert.ToBase64String(Encoding.UTF8.GetBytes(BuildMetadata.Machine))})";
+                userAgent.Append($" (Build {Convert.ToBase64String(Encoding.UTF8.GetBytes(BuildMetadata.Machine))})");
 #endif
             }
 
@@ -210,34 +323,32 @@ namespace Bloxstrap
             Logger.WriteLine(LOG_IDENT, $"Temp path is {Paths.Temp}");
             Logger.WriteLine(LOG_IDENT, $"WindowsStartMenu path is {Paths.WindowsStartMenu}");
 
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
-            HttpClient.Timeout = TimeSpan.FromSeconds(30);
-            HttpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            HttpClient.Timeout = TimeSpan.FromSeconds(60);
+
+            if (!HttpClient.DefaultRequestHeaders.UserAgent.Any())
+                HttpClient.DefaultRequestHeaders.Add("User-Agent", userAgent.ToString());
 
             LaunchSettings = new LaunchSettings(e.Args);
 
-            // installation check begins here
             using var uninstallKey = Registry.CurrentUser.OpenSubKey(UninstallKey);
             string? installLocation = null;
             bool fixInstallLocation = false;
-            
-            if (uninstallKey?.GetValue("InstallLocation") is string value)
+
+            if (uninstallKey?.GetValue("InstallLocation") is string installLocValue)
             {
-                if (Directory.Exists(value))
+                if (Directory.Exists(installLocValue))
                 {
-                    installLocation = value;
+                    installLocation = installLocValue;
                 }
                 else
                 {
-                    // check if user profile folder has been renamed
-                    var match = Regex.Match(value, @"^[a-zA-Z]:\\Users\\([^\\]+)", RegexOptions.IgnoreCase);
+                    var match = Regex.Match(installLocValue, @"^[a-zA-Z]:\\Users\\([^\\]+)", RegexOptions.IgnoreCase);
 
                     if (match.Success)
                     {
-                        string newLocation = value.Replace(match.Value, Paths.UserProfile, StringComparison.InvariantCultureIgnoreCase);
+                        string newLocation = installLocValue.Replace(match.Value, Paths.UserProfile, StringComparison.InvariantCultureIgnoreCase);
 
                         if (Directory.Exists(newLocation))
                         {
@@ -248,12 +359,10 @@ namespace Bloxstrap
                 }
             }
 
-            // silently change install location if we detect a portable run
-            if (installLocation is null && Directory.GetParent(Paths.Process)?.FullName is string processDir)
+            if (installLocation == null && Directory.GetParent(Paths.Process)?.FullName is string processDir)
             {
-                var files = Directory.GetFiles(processDir).Select(x => Path.GetFileName(x)).ToArray();
+                var files = Directory.GetFiles(processDir).Select(Path.GetFileName).ToArray();
 
-                // check if settings.json and state.json are the only files in the folder
                 if (files.Length <= 3 && files.Contains("Settings.json") && files.Contains("State.json"))
                 {
                     installLocation = processDir;
@@ -261,39 +370,56 @@ namespace Bloxstrap
                 }
             }
 
-            if (fixInstallLocation && installLocation is not null)
+            // The MSI places the application in its final directory before
+            // asking Leafstrap to register protocols, settings and shortcuts.
+            if (LaunchSettings.MsiInstallFlag.Active && Directory.GetParent(Paths.Process)?.FullName is string msiInstallLocation)
+            {
+                installLocation = msiInstallLocation;
+                fixInstallLocation = true;
+            }
+
+            if (fixInstallLocation && installLocation != null)
             {
                 var installer = new Installer
                 {
                     InstallLocation = installLocation,
-                    IsImplicitInstall = true
+                    IsImplicitInstall = true,
+                    // Windows Installer owns these links for MSI installs so it can
+                    // repair and remove them without leaving duplicate shortcuts.
+                    CreateDesktopShortcuts = !LaunchSettings.MsiInstallFlag.Active,
+                    CreateStartMenuShortcuts = !LaunchSettings.MsiInstallFlag.Active
                 };
 
                 if (installer.CheckInstallLocation())
                 {
                     Logger.WriteLine(LOG_IDENT, $"Changing install location to '{installLocation}'");
                     installer.DoInstall();
+
+                    if (LaunchSettings.MsiInstallFlag.Active)
+                    {
+                        Logger.WriteLine(LOG_IDENT, "MSI registration completed");
+                        Terminate();
+                        return;
+                    }
                 }
                 else
                 {
-                    // force reinstall
-                    installLocation = null;
+                    installLocation = null; // force reinstall
                 }
             }
 
-            if (installLocation is null)
+            if (installLocation == null)
             {
                 Logger.Initialize(true);
                 AssertWindowsOSVersion();
                 Logger.WriteLine(LOG_IDENT, "Not installed, launching the installer");
-                AssertWindowsOSVersion(); // prevent new installs from unsupported operating systems
+                AssertWindowsOSVersion();
                 LaunchHandler.LaunchInstaller();
             }
             else
             {
                 Paths.Initialize(installLocation);
 
-                // ensure executable is in the install directory
                 if (Paths.Process != Paths.Application && !File.Exists(Paths.Application))
                     File.Copy(Paths.Process, Paths.Application);
 
@@ -305,9 +431,31 @@ namespace Bloxstrap
                     Terminate();
                 }
 
+                Task.Run(RemoteData.LoadData); // ok
+
                 Settings.Load();
                 State.Load();
+
+                if (Settings.Prop.Theme == Enums.Theme.Halloween)
+                {
+                    Settings.Prop.Theme = Enums.Theme.Default;
+                    Settings.Save();
+                }
+
                 FastFlags.Load();
+                GlobalSettings.Load();
+
+                // to fix error System.IO.IOException: No se encuentra el recurso 'ui/style/.xaml'.
+                // when i put in installer dosent work
+                // if i try to fix in wpfuiwindow also dosent work
+                if (!Enum.IsDefined(Settings.Prop.Theme))
+                {
+                    Settings.Prop.Theme = Enums.Theme.Dark;
+                    Settings.Save();
+                }
+
+                if (Settings.Prop.AllowCookieAccess)
+                    Task.Run(Cookies.LoadCookies);
 
                 if (!Locale.SupportedLocales.ContainsKey(Settings.Prop.Locale))
                 {
@@ -320,13 +468,17 @@ namespace Bloxstrap
                 if (!LaunchSettings.BypassUpdateCheck)
                     Installer.HandleUpgrade();
 
-                WindowsRegistry.RegisterApis(); // we want to register those early on
-                                                // so we wont have any issues with bloxshade
+                WindowsRegistry.RegisterApis();
 
                 LaunchHandler.ProcessLaunchArgs();
             }
 
-            // you must *explicitly* call terminate when everything is done, it won't be called implicitly
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            FrostRPC?.Dispose();
+            base.OnExit(e);
         }
     }
 }

@@ -39,6 +39,8 @@ namespace Bloxstrap.UI.Elements.Dialogs
             DataContext = viewModel;
 
             InitializeComponent();
+
+            App.FrostRPC?.SetDialog("Uninstaller");
         }
     }
 }

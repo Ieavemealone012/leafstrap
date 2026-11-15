@@ -6,10 +6,12 @@
 
         public static IReadOnlyCollection<BootstrapperStyle> Selections => new BootstrapperStyle[]
         {
-            BootstrapperStyle.FluentDialog,
-            BootstrapperStyle.FluentAeroDialog,
             BootstrapperStyle.ClassicFluentDialog,
+            BootstrapperStyle.Roblox2016Dialog,
+            BootstrapperStyle.FluentAeroDialog,
+            BootstrapperStyle.FluentDialog,
             BootstrapperStyle.ByfronDialog,
+            BootstrapperStyle.TwentyFiveDialog,
             BootstrapperStyle.ProgressDialog,
             BootstrapperStyle.LegacyDialog2011,
             BootstrapperStyle.LegacyDialog2008,

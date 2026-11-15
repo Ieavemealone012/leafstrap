@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Roblox Classic light: airy white content framed by the anniversary theme's pale blue chrome. -->
+    <Color x:Key="SystemAccentColorPrimary">#00A2FF</Color>
+    <Color x:Key="SystemAccentColorSecondary">#008FD6</Color>
+    <Color x:Key="SystemAccentColorTertiary">#0074AD</Color>
+
+    <SolidColorBrush x:Key="ClassicHeaderBackground" Color="#CDEEFF" />
+    <SolidColorBrush x:Key="ClassicNavigationBackground" Color="#C7E9FA" />
+    <SolidColorBrush x:Key="ClassicFooterBackground" Color="#E8F6FD" />
+    <SolidColorBrush x:Key="ApplicationBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NewTextEditorBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NewTextEditorForeground" Color="#111216" />
+    <SolidColorBrush x:Key="NewTextEditorLink" Color="#008FD6" />
+    <SolidColorBrush x:Key="PrimaryBackgroundColor" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NormalDarkAndLightBackground" Color="#F5FBFE" />
+    <Color x:Key="ControlFillColorDefault">#F2F8FC</Color>
+    <Color x:Key="CardBackgroundFillColorDefault">#F7FBFD</Color>
+    <Color x:Key="CardBackgroundFillColorSecondary">#EAF6FC</Color>
+
+    <Style x:Key="SquareProgressBarStyle" TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+        <Setter Property="Foreground" Value="#00A2FF" />
+        <Setter Property="Background" Value="#D5DEE3" />
+        <Setter Property="BorderBrush" Value="#AEBBC2" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+</ResourceDictionary>

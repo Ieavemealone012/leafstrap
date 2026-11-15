@@ -10,21 +10,36 @@
       xmlns:resources="clr-namespace:Bloxstrap.Resources"
       d:DataContext="{d:DesignInstance Type=models:ChannelViewModel}"
       mc:Ignorable="d" 
-      d:DesignHeight="600" d:DesignWidth="800"
+      d:DesignHeight="900" d:DesignWidth="800"
       Title="ChannelPage"
       Scrollable="True">
 
     <StackPanel Margin="0,0,14,14">
-        <TextBlock Margin="0,0,0,8" Text="{x:Static resources:Strings.Menu_Channel_Description}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        <TextBlock Margin="0,0,0,8" Text="Change deployment and installation settings for Roblox and Leafstrap." FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 
-        <TextBlock Text="Leafstrap" FontSize="16" FontWeight="Medium" Margin="0,16,0,0" />
+        <TextBlock Text="Leafstrap" FontSize="20" FontWeight="Bold" Margin="0,16,0,0" />
+        
         <controls:OptionControl 
             Header="{x:Static resources:Strings.Menu_Behaviour_AutoUpdate_Title}"
             Description="{x:Static resources:Strings.Menu_Behaviour_AutoUpdate_Description}">
-            <ui:ToggleSwitch IsChecked="{Binding UpdateCheckingEnabled, Mode=TwoWay}" />
+            <ui:ToggleSwitch IsChecked="{Binding CheckForUpdates, Mode=TwoWay}" />
         </controls:OptionControl>
 
-        <TextBlock Text="Roblox" FontSize="16" FontWeight="Medium" Margin="0,16,0,0" />
+        <controls:OptionControl 
+            Header="Include Pre-Releases"
+            Description="When automatic updates are enabled, Leafstrap considers both stable and pre-release versions and selects whichever is newer.">
+            <ui:ToggleSwitch IsChecked="{Binding CheckForPreRelease, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Test Mode"
+            Description="Hide the settings window while launching Roblox and restore it when Roblox closes.">
+            <ui:ToggleSwitch IsChecked="{Binding TestModeEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <Separator Margin="0,8,0,6"/>
+
+        <TextBlock Text="Roblox" FontSize="20" FontWeight="Bold"/>
 
         <controls:OptionControl 
             Header="{x:Static resources:Strings.Menu_Behaviour_ForceRobloxReinstall_Title}"
@@ -32,7 +47,7 @@
             <controls:OptionControl.Style>
                 <Style TargetType="controls:OptionControl">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ForceRobloxReinstallation, Mode=OneTime}" Value="True">
+                        <DataTrigger Binding="{Binding IsRobloxInstallationMissing, Mode=OneTime}" Value="True">
                             <Setter Property="IsEnabled" Value="False" />
                         </DataTrigger>
                     </Style.Triggers>
@@ -42,12 +57,12 @@
         </controls:OptionControl>
 
         <controls:OptionControl 
-    Header="{x:Static resources:Strings.Menu_Channel_RobloxUpgrades}"
-    Description="{x:Static resources:Strings.Menu_Channel_RobloxUpgrades_Description}">
+            Header="{x:Static resources:Strings.Menu_Channel_RobloxUpgrades}"
+            Description="{x:Static resources:Strings.Menu_Channel_RobloxUpgrades_Description}">
             <controls:OptionControl.Style>
                 <Style TargetType="controls:OptionControl">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ForceRobloxReinstallation, Mode=OneTime}" Value="True">
+                        <DataTrigger Binding="{Binding IsRobloxInstallationMissing, Mode=OneTime}" Value="True">
                             <Setter Property="IsEnabled" Value="False" />
                         </DataTrigger>
                     </Style.Triggers>
@@ -55,18 +70,86 @@
             </controls:OptionControl.Style>
             <ui:ToggleSwitch IsChecked="{Binding UpdateRoblox, Mode=TwoWay}" />
         </controls:OptionControl>
-
-        <controls:OptionControl 
-    x:Name="FlagStateOption"
-    Header="{x:Static resources:Strings.Menu_Channel_VersionHash_Title}" 
-    Description="{x:Static resources:Strings.Menu_Channel_VersionHash_Desription}"
-    Visibility="Collapsed">
-            <ui:TextBox Width="200" Padding="10,5,10,5" Text="{Binding ChannelHash, Mode=TwoWay}" />
+        <controls:OptionControl
+            Header="Multi-Threaded Downloads"
+            Description="Choose how many Roblox packages Leafstrap downloads at once. Higher values can improve installation speed on fast connections.">
+            <ui:NumberBox Width="200"
+                          Min="1"
+                          Max="8"
+                          Step="1"
+                          IntegersOnly="True"
+                          Value="{Binding MaxThreadDownload, Mode=TwoWay}" />
         </controls:OptionControl>
+        <controls:OptionControl 
+            Header="{x:Static resources:Strings.Menu_Channel_StaticDirectory_Title}"
+            Description="{x:Static resources:Strings.Menu_Channel_StaticDirectory_Description}">
+            <ui:ToggleSwitch IsChecked="{Binding StaticDirectory, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Roblox version"
+            Description="Choose the Roblox client distribution Leafstrap should use.">
+            <ComboBox Width="200"
+                      ItemsSource="{Binding ClientDistributions.Keys, Mode=OneTime}"
+                      SelectedItem="{Binding SelectedDistribution, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Roblox domain"
+            Description="Set the domain Roblox and Leafstrap use. Enter only trusted domains.">
+            <ui:TextBox Width="200" Text="{Binding RobloxDomain, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+        </controls:OptionControl>
+
+        <ui:CardExpander Margin="0,8,0,0" IsExpanded="{Binding PlayerVersionOverrideEnabled, Mode=OneWay}">
+            <ui:CardExpander.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="Override Player Version" />
+                        <TextBlock Margin="0,2,12,0" FontSize="12" Text="Install and launch a specific Roblox Player version hash instead of the latest." Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding PlayerVersionOverrideEnabled, Mode=TwoWay}" />
+                </Grid>
+            </ui:CardExpander.Header>
+            <StackPanel>
+                <TextBlock Margin="0,0,0,6" Text="Version Hash" FontWeight="SemiBold" />
+                <ui:TextBox Text="{Binding PlayerVersionOverrideHash, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="version-xxxxxxxxxxxxxxxx" />
+                <TextBlock Margin="0,6,0,0" Text="{Binding PlayerVersionValidationMessage}" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+            </StackPanel>
+        </ui:CardExpander>
+
+        <ui:CardExpander Margin="0,8,0,0" IsExpanded="{Binding StudioVersionOverrideEnabled, Mode=OneWay}">
+            <ui:CardExpander.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="Override Studio Version" />
+                        <TextBlock Margin="0,2,12,0" FontSize="12" Text="Install and launch a specific Roblox Studio version hash instead of the latest." Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding StudioVersionOverrideEnabled, Mode=TwoWay}" />
+                </Grid>
+            </ui:CardExpander.Header>
+            <StackPanel>
+                <TextBlock Margin="0,0,0,6" Text="Version Hash" FontWeight="SemiBold" />
+                <ui:TextBox Text="{Binding StudioVersionOverrideHash, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="version-xxxxxxxxxxxxxxxx" />
+                <TextBlock Margin="0,6,0,0" Text="{Binding StudioVersionValidationMessage}" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+            </StackPanel>
+        </ui:CardExpander>
 
         <ui:CardExpander Margin="0,8,0,0" IsExpanded="True">
             <ui:CardExpander.Header>
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -75,7 +158,7 @@
                         <TextBlock FontSize="14" Text="{x:Static resources:Strings.Common_Channel}" />
                         <TextBlock Margin="0,2,0,0" FontSize="12" Text="{x:Static resources:Strings.Menu_ChannelChanger_Description}" Foreground="{DynamicResource TextFillColorTertiaryBrush}"  />
                     </StackPanel>
-                    <ui:TextBox Grid.Column="1" Margin="8,0,8,0" Padding="10,5,10,5" Width="200" Text="{Binding ViewChannel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=250}" />
+                    <ui:TextBox Grid.Column="1" Grid.Row="0" Margin="8,0,8,0" Padding="10,5,10,5" Width="200" Text="{Binding ViewChannel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=250}" />
                 </Grid>
             </ui:CardExpander.Header>
 
@@ -110,7 +193,12 @@
                     <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,16,8" VerticalAlignment="Center" Text="{x:Static resources:Strings.Common_VersionGuid}" />
                     <TextBlock Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding ChannelDeployInfo.VersionGuid, Mode=OneWay}" />
 
-                    <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0,16,0,0" Orientation="Horizontal">
+                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,16,8" VerticalAlignment="Center" Text="{x:Static resources:Strings.Common_Timestamp}" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding ChannelDeployInfo.Timestamp, Mode=OneWay}" />
+
+                    <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Content="{x:Static resources:Strings.Menu_ChannelChanger_AvailableChannels}" Click="OpenChannelListDialog_Click" />
+
+                    <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -174,14 +262,19 @@
             </StackPanel>
         </ui:CardExpander>
 
-        <ui:CardControl Margin="0,8,0,0">
-            <ui:CardControl.Header>
-                <StackPanel>
-                    <TextBlock FontSize="14" Text="{x:Static resources:Strings.Menu_Channel_ChangeAction_Title}" />
-                    <TextBlock Margin="0,2,0,0" FontSize="12" Text="{x:Static resources:Strings.Menu_Channel_ChangeAction_Description}" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                </StackPanel>
-            </ui:CardControl.Header>
+        <controls:OptionControl 
+            Header="{x:Static resources:Strings.Menu_Channel_ChangeAction_Title}" 
+            Description="{x:Static resources:Strings.Menu_Channel_ChangeAction_Description}">
             <ComboBox Margin="5,0,0,0" Padding="10,5,10,5" Width="200" ItemsSource="{Binding ChannelChangeModes.Keys, Mode=OneTime}" Text="{Binding SelectedChannelChangeMode, Mode=TwoWay}" />
-        </ui:CardControl>
+        </controls:OptionControl>
+
+        <Grid Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+        </Grid>
     </StackPanel>
 </ui:UiPage>

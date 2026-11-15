@@ -1,0 +1,17 @@
+<Project Sdk="WixToolset.Sdk/5.0.0">
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <OutputName>Leafstrap-windows-x64</OutputName>
+    <AppVersion Condition="'$(AppVersion)' == ''">1.0.7</AppVersion>
+    <PublishDir Condition="'$(PublishDir)' == ''">..\Bloxstrap\bin\Release\net10.0-windows\publish\win-x64</PublishDir>
+    <DefineConstants>PublishDir=$(PublishDir);AppVersion=$(AppVersion)</DefineConstants>
+    <!-- ICE validation requires the Windows Installer service, which is not
+         available in every CI/sandbox environment. WiX still performs its
+         compiler/linker validation before emitting the package. -->
+    <SuppressValidation>true</SuppressValidation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.0" />
+  </ItemGroup>
+</Project>

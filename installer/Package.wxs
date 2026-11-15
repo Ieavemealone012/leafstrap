@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="Leafstrap"
+           Manufacturer="Ieavemealone012"
+           Version="$(AppVersion)"
+           UpgradeCode="B4B501D4-5C29-4B4A-9C91-1DDE1B2A2F06"
+           Scope="perUser"
+           Language="1033">
+
+    <SummaryInformation Keywords="Leafstrap Roblox Bootstrapper" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Leafstrap is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Property Id="ARPHELPLINK" Value="https://github.com/Ieavemealone012/leafstrap/issues" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/Ieavemealone012/leafstrap" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/Ieavemealone012/leafstrap/releases" />
+    <Property Id="ARPPRODUCTICON" Value="LeafstrapIcon.ico" />
+
+    <Icon Id="LeafstrapIcon.ico" SourceFile="..\Bloxstrap\app.ico" />
+
+    <!-- Replace WiX's sample license and generic artwork with Leafstrap's
+         actual open-source license and branded installer artwork. -->
+    <WixVariable Id="WixUILicenseRtf" Value="assets\License.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="assets\Banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="assets\Dialog.bmp" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="INSTALLFOLDER" Name="Leafstrap" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="LeafstrapProgramMenuFolder" Name="Leafstrap" />
+    </StandardDirectory>
+
+    <Feature Id="MainApplication" Title="Leafstrap" Level="1" AllowAbsent="no">
+      <ComponentRef Id="LeafstrapApplication" />
+      <ComponentRef Id="LeafstrapDesktopShortcut" />
+      <ComponentRef Id="LeafstrapStartMenuShortcut" />
+    </Feature>
+
+    <Component Id="LeafstrapApplication" Directory="INSTALLFOLDER" Guid="72D9E786-4592-4F02-B01B-4B4D8CB433CB">
+      <File Id="LeafstrapExe" Source="$(PublishDir)\Leafstrap.exe" />
+      <File Id="LeafstrapUninstaller" Source="$(PublishDir)\Uninstall.exe" />
+      <File Id="LeafstrapResourceIcon" Source="..\Bloxstrap\app.ico" />
+      <RegistryValue Root="HKCU" Key="Software\Leafstrap\MSI" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+      <RemoveFile Id="RemoveLeafstrapRootFiles" Name="*.*" On="uninstall" />
+      <RemoveFolder Id="RemoveLeafstrapInstallFolder" On="uninstall" />
+    </Component>
+
+    <Component Id="LeafstrapDesktopShortcut" Directory="DesktopFolder" Guid="*">
+      <Shortcut Id="LeafstrapDesktopShortcutLink"
+                Name="Leafstrap"
+                Target="[INSTALLFOLDER]Leafstrap.exe"
+                Icon="LeafstrapIcon.ico" />
+      <RegistryValue Root="HKCU" Key="Software\Leafstrap\MSI" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <Component Id="LeafstrapStartMenuShortcut" Directory="LeafstrapProgramMenuFolder" Guid="*">
+      <Shortcut Id="LeafstrapStartMenuShortcutLink"
+                Name="Leafstrap"
+                Target="[INSTALLFOLDER]Leafstrap.exe"
+                Icon="LeafstrapIcon.ico" />
+      <RemoveFolder Id="RemoveLeafstrapProgramMenuFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\Leafstrap\MSI" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <CustomAction Id="RegisterLeafstrap"
+                  FileRef="LeafstrapExe"
+                  ExeCommand="-msiinstall -quiet"
+                  Execute="deferred"
+                  Return="check"
+                  Impersonate="yes" />
+
+    <CustomAction Id="UnregisterLeafstrap"
+                  FileRef="LeafstrapExe"
+                  ExeCommand="-uninstall -quiet"
+                  Execute="deferred"
+                  Return="ignore"
+                  Impersonate="yes" />
+
+    <InstallExecuteSequence>
+      <Custom Action="RegisterLeafstrap" After="InstallFiles" Condition="NOT Installed" />
+      <Custom Action="UnregisterLeafstrap" Before="RemoveFiles" Condition='REMOVE="ALL"' />
+    </InstallExecuteSequence>
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+  </Package>
+</Wix>

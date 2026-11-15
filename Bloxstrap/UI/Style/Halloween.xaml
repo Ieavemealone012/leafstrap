@@ -1,0 +1,47 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Haunted Leaf: dark plum shadows, pumpkin-orange interaction, and a restrained ember glow. -->
+    <Color x:Key="SystemAccentColor">#E85D04</Color>
+    <Color x:Key="SystemAccentColorPrimary">#FF7A00</Color>
+    <Color x:Key="SystemAccentColorSecondary">#FF9A3C</Color>
+    <Color x:Key="SystemAccentColorTertiary">#FFC078</Color>
+
+    <SolidColorBrush x:Key="SystemAccentColorBrush" Color="#E85D04" />
+    <SolidColorBrush x:Key="SystemAccentColorPrimaryBrush" Color="#FF7A00" />
+    <SolidColorBrush x:Key="SystemAccentColorSecondaryBrush" Color="#FF9A3C" />
+    <SolidColorBrush x:Key="SystemAccentColorTertiaryBrush" Color="#FFC078" />
+    <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#FF9A3C" />
+    <SolidColorBrush x:Key="AccentTextFillColorSecondaryBrush" Color="#FFC078" />
+    <SolidColorBrush x:Key="AccentTextFillColorTertiaryBrush" Color="#FF7A00" />
+    <SolidColorBrush x:Key="AccentFillColorSelectedTextBackgroundBrush" Color="#E85D04" />
+    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FF7A00" />
+    <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E96F00" />
+    <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#C75C00" />
+    <SolidColorBrush x:Key="SystemFillColorAttentionBrush" Color="#FF7A00" />
+
+    <SolidColorBrush x:Key="ClassicHeaderBackground" Color="#291238" />
+    <SolidColorBrush x:Key="ClassicNavigationBackground" Color="#1C1027" />
+    <SolidColorBrush x:Key="ClassicFooterBackground" Color="#24112D" />
+
+    <SolidColorBrush x:Key="NewTextEditorBackground" Color="#120D17" />
+    <SolidColorBrush x:Key="NewTextEditorForeground" Color="#FFF5E9" />
+    <SolidColorBrush x:Key="NewTextEditorLink" Color="#FF9A3C" />
+    <SolidColorBrush x:Key="PrimaryBackgroundColor" Color="#CC21152A" />
+    <SolidColorBrush x:Key="NormalDarkAndLightBackground" Color="#B324172E" />
+    <Color x:Key="ControlFillColorDefault">#242D1B34</Color>
+    <Color x:Key="CardBackgroundFillColorDefault">#C0211728</Color>
+    <Color x:Key="CardBackgroundFillColorSecondary">#B318111F</Color>
+
+    <LinearGradientBrush x:Key="ApplicationBackground" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0.0" Color="#100B15" />
+        <GradientStop Offset="0.55" Color="#21102B" />
+        <GradientStop Offset="1.0" Color="#4A1B08" />
+    </LinearGradientBrush>
+
+    <Style x:Key="SquareProgressBarStyle" TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+        <Setter Property="Foreground" Value="#FF7A00" />
+        <Setter Property="Background" Value="#2A1B32" />
+        <Setter Property="BorderBrush" Value="#704128" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+</ResourceDictionary>

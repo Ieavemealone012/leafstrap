@@ -11,18 +11,18 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance dmodels:MainWindowViewModel, IsDesignTimeCreatable=True}"
              Title="{x:Static resources:Strings.Menu_Title}"
-             MinWidth="1000"
-             Width="1000"
-             Height="580"
+             MinWidth="250"
+             Width="1125"
+             MinHeight="250"
+             Height="700"
              Background="{ui:ThemeResource ApplicationBackgroundBrush}"
              ExtendsContentIntoTitleBar="True"
+             WindowBackdropType="Mica"
              WindowStartupLocation="CenterScreen"
              Closing="WpfUiWindow_Closing"
              Closed="WpfUiWindow_Closed">
 
-
-
-    <Grid>
+    <Grid Background="{DynamicResource ApplicationBackground}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -33,17 +33,17 @@
             x:Name="AlreadyRunningSnackbar"
             Title="{x:Static resources:Strings.Menu_AlreadyRunning_Title}"
             Message="{x:Static resources:Strings.Menu_AlreadyRunning_Caption}"
-            Icon="Info20" Timeout="10000" Margin="200,0,200,20" Grid.RowSpan="10" Panel.ZIndex="10" />
+            Background="{DynamicResource NormalDarkAndLightBackground}" Icon="Info20" Timeout="5000" Margin="200,0,200,40" Grid.RowSpan="10" Panel.ZIndex="10" />
 
         <ui:Snackbar
             x:Name="SettingsSavedSnackbar"
             Title="{x:Static resources:Strings.Menu_SettingsSaved_Title}"
             Message="{x:Static resources:Strings.Menu_SettingsSaved_Message}"
-            Appearance="Success" Icon="CheckmarkCircle32" Timeout="3000" Margin="200,0,200,20" Grid.RowSpan="10" Panel.ZIndex="9" />
+            Background="#CC1A1A1A" Icon="CheckmarkCircle24" Timeout="3000" Margin="200,0,200,40" Grid.RowSpan="10" Panel.ZIndex="9" />
 
-        <ui:TitleBar Padding="8" x:Name="RootTitleBar" Grid.Row="0" ForceShutdown="False" MinimizeToTray="False" UseSnapLayout="True" Title="{x:Static resources:Strings.Menu_Title}" Icon="pack://application:,,,/Bloxstrap.ico" />
+        <ui:TitleBar Padding="8" x:Name="RootTitleBar" Grid.Row="0" Background="{DynamicResource ClassicHeaderBackground}" ForceShutdown="False" MinimizeToTray="False" UseSnapLayout="True" Title="{x:Static resources:Strings.Menu_Title}" Icon="pack://application:,,,/Leafstrap.ico" />
 
-        <Grid x:Name="RootGrid" Grid.Row="1" Margin="12,12,0,0" Visibility="Visible">
+        <Grid x:Name="RootGrid" Grid.Row="1" Margin="10,8,0,0" Visibility="Visible">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -53,38 +53,55 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <ui:NavigationFluent x:Name="RootNavigation" Grid.Row="1" Grid.Column="0" Margin="0,0,12,0" Frame="{Binding ElementName=RootFrame}" SelectedPageIndex="0">
-                <ui:NavigationFluent.Items>
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Integrations_Title}" PageType="{x:Type pages:IntegrationsPage}" Icon="Add28" Tag="integrations" />
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Behaviour_Title}" PageType="{x:Type pages:BehaviourPage}" Icon="PlaySettings20" Tag="bootstrapper" />
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Common_Deployment}" PageType="{x:Type pages:ChannelPage}" Icon="CloudArchive20" Tag="channel" />
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Mods_Title}" PageType="{x:Type pages:ModsPage}" Icon="WrenchScrewdriver20" Tag="mods" />
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_FastFlags_Title}" PageType="{x:Type pages:FastFlagsPage}" Icon="Flag24" Tag="fastflags" />
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Appearance_Title}" PageType="{x:Type pages:AppearancePage}" Icon="PaintBrush24" Tag="appearance" />
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Common_Shortcuts}" PageType="{x:Type pages:ShortcutsPage}" Icon="Apps28" Tag="shortcuts" />
+            <ui:AutoSuggestBox Grid.Row="0"
+                               Grid.Column="0"
+                               Width="215"
+                               Margin="0,0,20,8"
+                               Visibility="{Binding IsSidebarExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
+                               PlaceholderText="Search settings"
+                               TextChanged="SettingsSearch_TextChanged" />
 
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_FastFlagEditor_Title}" PageType="{x:Type pages:FastFlagEditorPage}" Tag="fastflageditor" Visibility="Collapsed" />
-                </ui:NavigationFluent.Items>
-                <ui:NavigationFluent.Footer>
-                    <ui:NavigationItem Visibility="Collapsed" Content="Leafstrap" PageType="{x:Type pages:BloxstrapPage}" Icon="FoodFish24" Tag="shortcuts" />
-                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_About_Title}" Icon="FoodFish24" Margin="0,0,0,12" Command="{Binding OpenAboutCommand, Mode=OneTime}" />
-                </ui:NavigationFluent.Footer>
-            </ui:NavigationFluent>
+            <ui:NavigationCompact x:Name="RootNavigation" Grid.Row="1" Grid.Column="0" Margin="-10,-8,20,0" Padding="10,8,0,0" Background="{DynamicResource ClassicNavigationBackground}" Frame="{Binding ElementName=RootFrame}" IsExpanded="{Binding IsSidebarExpanded, Mode=TwoWay}" MaxWidth="225" SelectedPageIndex="0" FooterAlwaysVisible="True">
+                <ui:NavigationCompact.Items>
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Integrations_Title}" PageType="{x:Type pages:IntegrationsPage}" Icon="Add28" IconSize="20" Tag="integrations" />
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Behaviour_Title}" PageType="{x:Type pages:BehaviourPage}" Icon="PlaySettings20" IconSize="20" Tag="bootstrapper" />
+                    <ui:NavigationItem Content="Deployment" PageType="{x:Type pages:ChannelPage}" Icon="CloudArchive20" IconSize="20" Tag="channel" />
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Mods_Title}" PageType="{x:Type pages:ModsPage}" Icon="WrenchScrewdriver20" IconSize="20" Tag="mods" />
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_FastFlags_Title}" PageType="{x:Type pages:FastFlagsPage}" Icon="Flag24" IconSize="20" Tag="fastflags" />
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_Appearance_Title}" PageType="{x:Type pages:AppearancePage}" Icon="PaintBrush24" IconSize="20" Tag="appearance" />
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_RegionSelector_Title}" PageType="{x:Type pages:RegionSelectorPage}" Icon="Earth24" IconSize="20" Tag="regionselector" />
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_RobloxSettings_Title}" PageType="{x:Type pages:RobloxSettingsPage}" Icon="SquareHintApps24" IconSize="20" Tag="robloxsettings" x:Name="gbs" />
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Common_Shortcuts}" PageType="{x:Type pages:ShortcutsPage}" Icon="Apps28" IconSize="20" Tag="shortcuts" />
+
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_FastFlagEditor_Title}" PageType="{x:Type pages:FastFlagEditorPage}" Icon="EditSettings20" IconSize="20" Tag="fastflageditor" Visibility="Collapsed" />
+                    <ui:NavigationItem Content="Community Mods" PageType="{x:Type pages:CommunityModsPage}" Icon="BuildingShop24" IconSize="20" Tag="communitymods" Visibility="Collapsed" />
+                    <ui:NavigationItem Content="Preset Mods" PageType="{x:Type pages:ModsPresetsPage}" Icon="BuildingShop24" IconSize="20" Tag="presetmods" Visibility="Collapsed" />
+                    <ui:NavigationItem Content="Mod Generator" PageType="{x:Type pages:ModGeneratorPage}" Icon="BuildingShop24" IconSize="20" Tag="modgenerator" Visibility="Collapsed" />
+                </ui:NavigationCompact.Items>
+                <ui:NavigationCompact.Footer>
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_AccountManager_Title}" Icon="People24" IconSize="20" Tag="accountmanager"  Command="{Binding OpenAccountManagerCommand, Mode=OneTime}" />
+                    <ui:NavigationItem Content="{x:Static resources:Strings.Menu_About_Title}" Icon="Info24" IconSize="21" Margin="0,0,0,12" Command="{Binding OpenAboutCommand, Mode=OneTime}" />
+                </ui:NavigationCompact.Footer>
+            </ui:NavigationCompact>
 
             <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <ui:Breadcrumb Grid.Row="0" Margin="0,0,0,5" Navigation="{Binding ElementName=RootNavigation}" />
-                <Frame x:Name="RootFrame" Grid.Row="1" />
+                <ui:InfoBar x:Name="AlertBar" Grid.Row="0" Margin="0,0,12,0" Padding="8" Visibility="Collapsed" IsOpen="True" Message="" Severity="Warning" IsClosable="False" />
+                <ui:Breadcrumb Grid.Row="1" Margin="0,0,0,5" Navigation="{Binding ElementName=RootNavigation}" />
+                <Frame x:Name="RootFrame" Grid.Row="2" />
             </Grid>
         </Grid>
 
-        <StatusBar x:Name="RootStatusBar" Grid.Row="2" Padding="14,10" BorderThickness="0,1,0,0">
-            <StatusBar.Background>
-                <SolidColorBrush Color="{ui:ThemeResource ApplicationBackgroundColor}" Opacity="0" />
-            </StatusBar.Background>
+        <StatusBar x:Name="RootStatusBar"
+           Grid.Row="2"
+           Background="{DynamicResource ClassicFooterBackground}"
+           Padding="12,6"
+           BorderThickness="0,1,0,0">
+
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
@@ -94,25 +111,127 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
-            <StatusBarItem Grid.Column="0">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <ui:ToggleSwitch IsChecked="{Binding TestModeEnabled, Mode=TwoWay}" />
-                    <TextBlock Padding="12,0,0,0" Text="{x:Static resources:Strings.Menu_TestMode}" VerticalAlignment="Center" FontSize="14" />
+
+            <!-- Test Mode -->
+            <StatusBarItem Grid.Column="0" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <ui:ToggleSwitch IsChecked="{Binding TestModeEnabled, Mode=TwoWay}" Height="22" VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Static resources:Strings.Menu_TestMode}"
+                       FontSize="13.5"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0"
+                       FontWeight="Medium"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                 </StackPanel>
             </StatusBarItem>
-            <StatusBarItem Grid.Column="2" Padding="0,0,4,0">
-                <ui:Button Content="{x:Static resources:Strings.Menu_SaveAndLaunch}" Appearance="Primary" Command="{Binding SaveAndLaunchSettingsCommand, Mode=OneWay}" />
+
+            <!-- Save & Launch -->
+            <StatusBarItem Grid.Column="2" VerticalAlignment="Center" Margin="0,0,4,0">
+                <ui:Button x:Name="LaunchButton"
+               Content="{x:Static resources:Strings.Menu_SaveAndLaunch}"
+               Appearance="Primary"
+               Height="32"
+               FontWeight="Medium"
+               Padding="14,0"
+               Click="LaunchButton_Click">
+                    <ui:Button.ContextMenu>
+                        <ContextMenu x:Name="LaunchMenu">
+                            <MenuItem Header="Launch Roblox Player" Command="{Binding SaveAndLaunchPlayerCommand}">
+                                <MenuItem.Icon>
+                                    <ui:SymbolIcon Symbol="Games24" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Launch Roblox Studio" Command="{Binding SaveAndLaunchStudioCommand}">
+                                <MenuItem.Icon>
+                                    <ui:SymbolIcon Symbol="TextBulletListSquareToolbox20" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </ui:Button.ContextMenu>
+                </ui:Button>
             </StatusBarItem>
-            <StatusBarItem Grid.Column="3" Padding="0,0,4,0">
-                <ui:Button Content="{x:Static resources:Strings.Menu_Save}" Appearance="Primary" Command="{Binding SaveSettingsCommand, Mode=OneWay}" />
+
+            <!-- Restart -->
+            <StatusBarItem Grid.Column="3" VerticalAlignment="Center" Margin="0,0,4,0">
+                <ui:Button Content="{x:Static resources:Strings.Menu_Restart}"
+               Height="32"
+               Padding="14,0"
+               FontWeight="Medium"
+               Appearance="Primary"
+               Command="{Binding RestartAppCommand}" />
             </StatusBarItem>
-            <StatusBarItem Grid.Column="4" Padding="0,0,0,0">
-                <ui:Button Content="{x:Static resources:Strings.Common_Close}" Command="{Binding CloseWindowCommand, Mode=OneWay}" />
+
+            <!-- Save -->
+            <StatusBarItem Grid.Column="4" VerticalAlignment="Center" Margin="0,0,4,0">
+                <ui:Button Content="{x:Static resources:Strings.Menu_Save}"
+                   Appearance="Primary"
+                   Height="32"
+                   Padding="14,0"
+                   FontWeight="Medium"
+                   Command="{Binding SaveSettingsCommand}" />
+            </StatusBarItem>
+
+            <!-- Close -->
+            <StatusBarItem Grid.Column="5" VerticalAlignment="Center" Margin="0,0,0,0">
+                <ui:Button Content="{x:Static resources:Strings.Common_Close}"
+                   Height="32"
+                   Padding="14,0"
+                   FontWeight="Medium"
+                   Command="{Binding CloseWindowCommand}" />
             </StatusBarItem>
         </StatusBar>
+
+        <!-- Seasonal vector particles. They never receive input and only run for Haunted Leaf. -->
+        <Canvas x:Name="HalloweenOverlay"
+                Grid.RowSpan="3"
+                Panel.ZIndex="2"
+                ClipToBounds="True"
+                IsHitTestVisible="False"
+                Visibility="Collapsed" />
+
+        <Grid x:Name="LoadingOverlay"
+            Visibility="Collapsed"
+            Background="#A0000000"
+            Panel.ZIndex="9999"
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch">
+
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="{DynamicResource NormalDarkAndLightBackground}"
+                    CornerRadius="16"
+                    Padding="32"
+                    Effect="{DynamicResource ControlShadow}">
+                    <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Orientation="Vertical">
+
+                        <!-- Loading Text -->
+                        <TextBlock x:Name="LoadingOverlayText"
+                           Text="Loading..."
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,20"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+
+                        <ui:ProgressRing
+                            IsIndeterminate="True"
+                            Width="60"
+                            Height="60"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Margin="0,10,0,0" />
+
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
     </Grid>
 </base:WpfUiWindow>

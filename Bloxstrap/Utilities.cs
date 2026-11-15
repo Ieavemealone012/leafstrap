@@ -17,8 +17,6 @@ namespace Bloxstrap
             }
             catch (Win32Exception ex)
             {
-                // lmfao
-
                 if (ex.NativeErrorCode != (int)ErrorCode.CO_E_APPNOTFOUND)
                     throw;
 
@@ -39,6 +37,10 @@ namespace Bloxstrap
             if (idx != -1)
                 version = version[..idx];
 
+            int dashIdx = version.IndexOf('-');
+            if (dashIdx != -1)
+                version = version[..dashIdx];
+
             return new Version(version);
         }
 
@@ -57,10 +59,14 @@ namespace Bloxstrap
         {
             try
             {
-                var version1 = GetVersionFromString(versionStr1);
-                var version2 = GetVersionFromString(versionStr2);
+                var (version1, prerelease1) = GetVersionParts(versionStr1);
+                var (version2, prerelease2) = GetVersionParts(versionStr2);
 
-                return (VersionComparison)version1.CompareTo(version2);
+                var versionComparison = (VersionComparison)NormalizeVersion(version1).CompareTo(NormalizeVersion(version2));
+                if (versionComparison != VersionComparison.Equal)
+                    return versionComparison;
+
+                return ComparePrerelease(prerelease1, prerelease2);
             }
             catch (Exception)
             {
@@ -75,10 +81,84 @@ namespace Bloxstrap
             }
         }
 
-        public static string GetRobloxVersion(bool studio)
-        {
-            IAppData data = studio ? new RobloxStudioData() : new RobloxPlayerData();
+        private static Version NormalizeVersion(Version version) => new(
+            Math.Max(version.Major, 0),
+            Math.Max(version.Minor, 0),
+            Math.Max(version.Build, 0),
+            Math.Max(version.Revision, 0));
 
+        private static (Version Version, string? Prerelease) GetVersionParts(string version)
+        {
+            if (version.StartsWith('v'))
+                version = version[1..];
+
+            int metadataIndex = version.IndexOf('+');
+            if (metadataIndex != -1)
+                version = version[..metadataIndex];
+
+            string? prerelease = null;
+            int prereleaseIndex = version.IndexOf('-');
+            if (prereleaseIndex != -1)
+            {
+                prerelease = version[(prereleaseIndex + 1)..];
+                version = version[..prereleaseIndex];
+            }
+
+            return (new Version(version), prerelease);
+        }
+
+        private static VersionComparison ComparePrerelease(string? prerelease1, string? prerelease2)
+        {
+            if (string.IsNullOrEmpty(prerelease1) && string.IsNullOrEmpty(prerelease2))
+                return VersionComparison.Equal;
+            if (string.IsNullOrEmpty(prerelease1))
+                return VersionComparison.GreaterThan;
+            if (string.IsNullOrEmpty(prerelease2))
+                return VersionComparison.LessThan;
+
+            string[] parts1 = prerelease1.Split('.');
+            string[] parts2 = prerelease2.Split('.');
+            for (int i = 0; i < Math.Max(parts1.Length, parts2.Length); i++)
+            {
+                if (i >= parts1.Length) return VersionComparison.LessThan;
+                if (i >= parts2.Length) return VersionComparison.GreaterThan;
+
+                bool number1 = int.TryParse(parts1[i], NumberStyles.None, CultureInfo.InvariantCulture, out int value1);
+                bool number2 = int.TryParse(parts2[i], NumberStyles.None, CultureInfo.InvariantCulture, out int value2);
+                int comparison;
+
+                if (number1 && number2)
+                    comparison = value1.CompareTo(value2);
+                else if (number1 != number2)
+                    comparison = number1 ? -1 : 1;
+                else
+                    comparison = string.CompareOrdinal(parts1[i], parts2[i]);
+
+                if (comparison != 0)
+                    return comparison < 0 ? VersionComparison.LessThan : VersionComparison.GreaterThan;
+            }
+
+            return VersionComparison.Equal;
+        }
+
+        /// <summary>
+        /// Parses the input version string and prints if fails
+        /// </summary>
+        public static Version? ParseVersionSafe(string versionStr)
+        {
+            const string LOG_IDENT = "Utilities::ParseVersionSafe";
+
+            if (!Version.TryParse(versionStr, out Version? version))
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Failed to convert {versionStr} to a valid Version type.");
+                return version;
+            }
+
+            return version;
+        }
+
+        public static string GetRobloxVersionStr(IAppData data)
+        {
             string playerLocation = data.ExecutablePath;
 
             if (!File.Exists(playerLocation))
@@ -90,6 +170,19 @@ namespace Bloxstrap
                 return "";
 
             return versionInfo.ProductVersion.Replace(", ", ".");
+        }
+
+        public static string GetRobloxVersionStr(bool studio)
+        {
+            IAppData data = studio ? new RobloxStudioData() : new RobloxPlayerData();
+
+            return GetRobloxVersionStr(data);
+        }
+
+        public static Version? GetRobloxVersion(IAppData data)
+        {
+            string str = GetRobloxVersionStr(data);
+            return ParseVersionSafe(str);
         }
 
         public static Process[] GetProcessesSafe()
@@ -106,6 +199,37 @@ namespace Bloxstrap
                 App.Logger.WriteException(LOG_IDENT, ex);
                 return Array.Empty<Process>(); // can we retry?
             }
+        }
+
+        public static bool DoesMutexExist(string name)
+        {
+            try
+            {
+                Mutex.OpenExisting(name).Close();
+                return true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool IsRobloxRunning()
+        {
+            Process[] processes = GetProcessesSafe();
+            string processName = Path.GetFileNameWithoutExtension(App.RobloxPlayerAppName);
+
+            return processes.Any(x => x.ProcessName == processName);
+        }
+
+        public static void KillBackgroundUpdater()
+        {
+            using EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.AutoReset, "Bloxstrap-BackgroundUpdaterKillEvent");
+            handle.Set();
         }
     }
 }

@@ -127,6 +127,33 @@ namespace Bloxstrap.Utility
             currentApis?.Dispose();
         }
 
+        public static void RegisterClientLocation(bool isStudio, string? clientPath)
+        {
+            string keyName = isStudio ? "StudioPath" : "PlayerPath";
+            clientPath ??= "";
+
+            using var apisKey = Registry.CurrentUser.CreateSubKey(App.ApisKey);
+            apisKey.SetValueSafe(keyName, clientPath);
+        }
+
+        public static void RemoveRobloxStartupEntry()
+        {
+            const string valueName = "RobloxPlayerBeta";
+            try
+            {
+                using var runKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+                if (runKey?.GetValue(valueName) is not string entry ||
+                    !entry.Contains(App.RobloxPlayerAppName, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                runKey.DeleteValue(valueName);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException("WindowsRegistry::RemoveRobloxStartupEntry", ex);
+            }
+        }
+
         public static void Unregister(string key)
         {
             try

@@ -6,10 +6,16 @@
         [EnumName(FromTranslation = "Common.Default")]
         Default,
 
-        [EnumSort(Order = 3)]
-        From2006,
-
         [EnumSort(Order = 2)]
-        From2013
+        BlackAndWhiteDot,
+
+        [EnumSort(Order = 3)]
+        PurpleCross,
+
+        [EnumSort(Order = 4)]
+        From2013,
+
+        [EnumSort(Order = 5)]
+        From2006
     }
 }

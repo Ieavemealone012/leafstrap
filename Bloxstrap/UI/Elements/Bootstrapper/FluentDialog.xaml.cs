@@ -1,21 +1,8 @@
-﻿using Bloxstrap.UI.Elements.Bootstrapper.Base;
+﻿using Bloxstrap.RobloxInterfaces;
+using Bloxstrap.UI.Elements.Bootstrapper.Base;
 using Bloxstrap.UI.ViewModels.Bootstrapper;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Shell;
 using System.Windows.Threading;
 
@@ -31,6 +18,8 @@ namespace Bloxstrap.UI.Elements.Bootstrapper
         public Bloxstrap.Bootstrapper? Bootstrapper { get; set; }
 
         private bool _isClosing;
+        public string VersionText { get; init; } = "None";
+        public string ChannelText { get; init; } = "production";
 
         #region UI Elements
         public string Message
@@ -110,10 +99,9 @@ namespace Bloxstrap.UI.Elements.Bootstrapper
         {
             InitializeComponent();
 
-            string version = Utilities.GetRobloxVersion(false);
-            string channel = App.Settings.Prop.Channel;
-
-            _viewModel = new FluentDialogViewModel(this, aero, version, channel);
+            string version = Utilities.GetRobloxVersionStr(Bootstrapper?.IsStudioLaunch ?? false);
+            string channel = Deployment.Channel;
+            _viewModel = new FluentDialogViewModel(this, aero, version);
             DataContext = _viewModel;
             Title = App.Settings.Prop.BootstrapperTitle;
             Icon = App.Settings.Prop.BootstrapperIcon.GetIcon().GetImageSource();
@@ -121,6 +109,9 @@ namespace Bloxstrap.UI.Elements.Bootstrapper
             // setting this to true for mica results in the window being undraggable
             if (aero)
                 AllowsTransparency = true;
+
+            VersionText = $"{Strings.Common_Version}: {version}";
+            ChannelText = $"{Strings.Common_Channel}: {channel}";
         }
 
         private void UiWindow_Closing(object sender, CancelEventArgs e)

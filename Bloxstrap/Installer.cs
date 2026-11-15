@@ -28,19 +28,24 @@ namespace Bloxstrap
 
         public bool CreateStartMenuShortcuts = true;
 
-        public bool ImportSettings = Directory.Exists(Path.Combine(Paths.LocalAppData, "Bloxstrap")); // if bloxstrap isnt detected this will be set to false
-                                                                                                      // another scenerio is user simply toggling it off
+        public bool ImportSettings =
+            Directory.Exists(Path.Combine(Paths.LocalAppData, "Bloxstrap")) ||
+            Directory.Exists(Path.Combine(Paths.LocalAppData, "Fishstrap")) ||
+            Directory.Exists(Path.Combine(Paths.LocalAppData, "Lunastrap")) ||
+            Directory.Exists(Path.Combine(Paths.LocalAppData, "Luczystrap"));
 
         public bool IsImplicitInstall = false;
 
         public string InstallLocationError { get; set; } = "";
+
+        public ImportSettingsFrom ImportSource { get; set; } = ImportSettingsFrom.Bloxstrap;
 
         // anything we want copied should be put in here
         // root directory only
         public string[] FilesForImporting = {
             "CustomThemes", // from feature/custom-bootstrappers
             "Modifications",
-            "Settings.json"
+            "Settings.json",
         };
 
         public void DoInstall()
@@ -72,11 +77,12 @@ namespace Bloxstrap
                 }
             }
 
+            InstallCompanionResources();
+
             using (var uninstallKey = Registry.CurrentUser.CreateSubKey(App.UninstallKey))
             {
                 uninstallKey.SetValueSafe("DisplayIcon", $"{Paths.Application},0");
                 uninstallKey.SetValueSafe("DisplayName", App.ProjectName);
-
                 uninstallKey.SetValueSafe("DisplayVersion", App.Version);
 
                 if (uninstallKey.GetValue("InstallDate") is null)
@@ -91,14 +97,23 @@ namespace Bloxstrap
                 uninstallKey.SetValueSafe("HelpLink", App.ProjectHelpLink);
                 uninstallKey.SetValueSafe("URLInfoAbout", App.ProjectSupportLink);
                 uninstallKey.SetValueSafe("URLUpdateInfo", App.ProjectDownloadLink);
+
+                // The MSI owns the visible Apps & Features entry. Keep this
+                // compatibility key for Leafstrap's existing install checks,
+                // but hide the duplicate entry when registration came from MSI.
+                if (App.LaunchSettings.MsiInstallFlag.Active)
+                    uninstallKey.SetValueSafe("SystemComponent", 1);
             }
 
             WindowsRegistry.RegisterApis();
 
             // only register player, for the scenario where the user installs bloxstrap, closes it,
             // and then launches from the website expecting it to work
-            // studio can be implicitly registered when it's first launched manually
+            // studio can be implicitly registered when it's first launched manually or if its configuration files are present
             WindowsRegistry.RegisterPlayer();
+
+            if (App.IsStudioInstalled)
+                WindowsRegistry.RegisterStudio();
 
             if (CreateDesktopShortcuts)
                 Shortcut.Create(Paths.Application, "", DesktopShortcut);
@@ -106,14 +121,13 @@ namespace Bloxstrap
             if (CreateStartMenuShortcuts)
                 Shortcut.Create(Paths.Application, "", StartMenuShortcut);
 
-            if (ImportSettings)
+            if (ImportSource != ImportSettingsFrom.None)
             {
-                // we dont have to worry about directories messing up
-                // if something doenst exist fishstrap will recreate the file/directory
                 try
                 {
-                    ImportSettingsFromBloxstrap();
-                } catch (Exception ex)
+                    ImportSettingsFromSelectedApp();
+                }
+                catch (Exception ex)
                 {
                     Frontend.ShowMessageBox(
                         String.Format(Strings.Installer_FailedToImportSettings, ex.Message),
@@ -122,47 +136,84 @@ namespace Bloxstrap
                     );
                 }
             }
+            else
+            {
+                // If no import, but Modifications and State.json exist, use them
+                string modificationsPath = Paths.Modifications;
+                string statePath = App.State.FileLocation;
 
-            // existing configuration persisting from an earlier install
-            // or from importing settings
+                if (Directory.Exists(modificationsPath))
+                {
+                    // Optionally log or notify that existing modifications are being used
+                }
+
+                if (File.Exists(statePath))
+                {
+                    App.State.Load(false);
+                }
+            }
             App.Settings.Load(false);
             App.State.Load(false);
             App.FastFlags.Load(false);
-
-            if (App.IsStudioVisible)
-                WindowsRegistry.RegisterStudio();
-
             App.Settings.Save();
 
             App.Logger.WriteLine(LOG_IDENT, "Installation finished");
+        }
 
+        private static void InstallCompanionResources()
+        {
+            const string LOG_IDENT = "Installer::InstallCompanionResources";
+            string uninstallerPath = Path.Combine(Paths.Base, "Uninstall.exe");
+            string iconPath = Path.Combine(Paths.Base, "app.ico");
+
+            try
+            {
+                // Uninstall.exe is intentionally the same executable. LaunchSettings
+                // detects its filename and automatically enters uninstall mode.
+                if (!Path.GetFullPath(Paths.Application).Equals(Path.GetFullPath(uninstallerPath), StringComparison.OrdinalIgnoreCase))
+                    File.Copy(Paths.Application, uninstallerPath, true);
+
+                using Stream? iconStream = typeof(Installer).Assembly.GetManifestResourceStream("Leafstrap.app.ico");
+                if (iconStream is null)
+                    throw new InvalidDataException("The embedded Leafstrap icon could not be found.");
+
+                using FileStream iconFile = new(iconPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                iconStream.CopyTo(iconFile);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Could not install companion resources");
+                App.Logger.WriteException(LOG_IDENT, ex);
+                throw;
+            }
         }
 
         private bool ValidateLocation()
         {
-            // prevent from installing to the root of a drive
-            if (InstallLocation.Length <= 3)
-                return false;
+            // 2025-11-12 - Invra - Disable this for now just because installing
+            // to a network path is a cool thing to be available.
+            //
+            // // unc path, just to be safe
+            // if (InstallLocation.StartsWith("\\\\"))
+            //     return false;
 
-            // unc path, just to be safe
-            if (InstallLocation.StartsWith("\\\\"))
-                return false;
-
-            if (InstallLocation.StartsWith(Path.GetTempPath(), StringComparison.InvariantCultureIgnoreCase)
-                || InstallLocation.Contains("\\Temp\\", StringComparison.InvariantCultureIgnoreCase))
+            // prevents from installing to a temp directory
+            if (InstallLocation.StartsWith(Path.GetTempPath(), StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
             // prevent from installing to a onedrive folder
             if (InstallLocation.Contains("OneDrive", StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
-            // prevent from installing to an essential user profile folder (e.g. Documents, Downloads, Contacts idk)
-            if (String.Compare(Directory.GetParent(InstallLocation)?.FullName, Paths.UserProfile, StringComparison.InvariantCultureIgnoreCase) == 0)
+            if (InstallLocation == "C:\\")
                 return false;
 
-            // prevent from installing into the program files folder
-            if (InstallLocation.Contains("Program Files"))
-                return false;
+            // 2025-11-12 - Invra - Disable this for now just because installing
+            // pretty much anywhere is better.
+            //
+            // // prevent from installing to an essential user profile folder (e.g. Documents, Downloads, Contacts idk)
+            // if (String.Compare(Directory.GetParent(InstallLocation)?.FullName, Paths.UserProfile, StringComparison.InvariantCultureIgnoreCase) == 0)
+            //     return false;
 
             // prevent issues with settings importing
             if (InstallLocation.Contains("Local\\Bloxstrap"))
@@ -183,7 +234,7 @@ namespace Bloxstrap
             }
             else
             {
-                if (!IsImplicitInstall 
+                if (!IsImplicitInstall
                     && !InstallLocation.EndsWith(App.ProjectName, StringComparison.InvariantCultureIgnoreCase)
                     && Directory.Exists(InstallLocation)
                     && Directory.EnumerateFileSystemEntries(InstallLocation).Any())
@@ -230,11 +281,11 @@ namespace Bloxstrap
             const string LOG_IDENT = "Installer::DoUninstall";
 
             var processes = new List<Process>();
-            
-            if (!String.IsNullOrEmpty(App.State.Prop.Player.VersionGuid))
+
+            if (!String.IsNullOrEmpty(App.PlayerState.Prop.VersionGuid))
                 processes.AddRange(Process.GetProcessesByName(App.RobloxPlayerAppName));
 
-            if (App.IsStudioVisible)
+            if (App.IsStudioInstalled)
                 processes.AddRange(Process.GetProcessesByName(App.RobloxStudioAppName));
 
             // prompt to shutdown roblox if its currently running
@@ -267,7 +318,7 @@ namespace Bloxstrap
                 }
             }
 
-            string robloxFolder = Path.Combine(Paths.LocalAppData, "Roblox");
+            string robloxFolder = Path.Combine(Paths.Roblox);
             bool playerStillInstalled = true;
             bool studioStillInstalled = true;
 
@@ -284,8 +335,7 @@ namespace Bloxstrap
             }
             else
             {
-                bool AnselApp = File.Exists(Path.Combine((string)playerFolder, App.RobloxAnselAppName));
-                string playerPath = Path.Combine((string)playerFolder, AnselApp ? App.RobloxAnselAppName : "RobloxPlayerBeta.exe");
+                string playerPath = Path.Combine((string)playerFolder, App.RobloxPlayerAppName);
 
                 WindowsRegistry.RegisterPlayer(playerPath, "%1");
             }
@@ -306,7 +356,7 @@ namespace Bloxstrap
             }
             else
             {
-                string studioPath = Path.Combine((string)studioFolder, "RobloxStudioBeta.exe");
+                string studioPath = Path.Combine((string)studioFolder, App.RobloxStudioAppName);
                 string studioLauncherPath = Path.Combine((string)studioFolder, "RobloxStudioLauncherBeta.exe");
 
                 WindowsRegistry.RegisterStudioProtocol(studioPath, "%1");
@@ -343,22 +393,21 @@ namespace Bloxstrap
                 }
             };
 
-
             if (!keepData)
             {
                 cleanupSequence.AddRange(new List<Action>
                 {
                     () => Directory.Delete(Paths.Modifications, true),
-                    () => Directory.Delete(Paths.Logs, true),
-
-                    () => File.Delete(App.Settings.FileLocation)
+                    () => Directory.Delete(Paths.CustomCursors, true),
+                    () => File.Delete(App.Settings.FileLocation),
+                    () => File.Delete(App.State.FileLocation)
                 });
+
+                // Only delete the Froststrap folder if keepData is false
+                bool deleteFolder = Directory.GetFiles(Paths.Base).Length <= 3;
+                if (deleteFolder)
+                    cleanupSequence.Add(() => Directory.Delete(Paths.Base, true));
             }
-
-            bool deleteFolder = Directory.GetFiles(Paths.Base).Length <= 3;
-
-            if (deleteFolder)
-                cleanupSequence.Add(() => Directory.Delete(Paths.Base, true));
 
             if (!playerStillInstalled && !studioStillInstalled && Directory.Exists(robloxFolder))
                 cleanupSequence.Add(() => Directory.Delete(robloxFolder, true));
@@ -384,7 +433,7 @@ namespace Bloxstrap
 
                 string deleteCommand;
 
-                if (deleteFolder)
+                if (!keepData && Directory.GetFiles(Paths.Base).Length <= 3)
                     deleteCommand = $"del /Q \"{Paths.Base}\\*\" && rmdir \"{Paths.Base}\"";
                 else
                     deleteCommand = $"del /Q \"{Paths.Application}\"";
@@ -418,16 +467,19 @@ namespace Bloxstrap
             if (MD5Hash.FromFile(Paths.Process) == MD5Hash.FromFile(Paths.Application))
                 return;
 
-            if (currentVer is not null && existingVer is not null && Utilities.CompareVersions(currentVer, existingVer) == VersionComparison.LessThan)
+            if (currentVer is not null && existingVer is not null)
             {
-                var result = Frontend.ShowMessageBox(
-                    Strings.InstallChecker_VersionLessThanInstalled,
-                    MessageBoxImage.Question,
-                    MessageBoxButton.YesNo
-                );
+                if (Utilities.CompareVersions(currentVer, existingVer) == VersionComparison.LessThan)
+                {
+                    var result = Frontend.ShowMessageBox(
+                        Strings.InstallChecker_VersionLessThanInstalled,
+                        MessageBoxImage.Question,
+                        MessageBoxButton.YesNo
+                    );
 
-                if (result != MessageBoxResult.Yes)
-                    return;
+                    if (result != MessageBoxResult.Yes)
+                        return;
+                }
             }
 
             // silently upgrade version if the command line flag is set or if we're launching from an auto update
@@ -492,154 +544,126 @@ namespace Bloxstrap
                 uninstallKey.SetValueSafe("URLUpdateInfo", App.ProjectDownloadLink);
             }
 
-            // update migrations
-
             if (existingVer is not null)
             {
-                if (Utilities.CompareVersions(existingVer, "2.2.0") == VersionComparison.LessThan)
+                if (Utilities.CompareVersions(existingVer, "1.2.5.0") == VersionComparison.LessThan)
                 {
-                    string path = Path.Combine(Paths.Integrations, "rbxfpsunlocker");
+                    App.Settings.Prop.ShowServerUptime = false;
+                }
 
-                    try
+                if (Utilities.CompareVersions(existingVer, "1.4.0.0") == VersionComparison.LessThan)
+                {
+                    // move from App.State to App.RobloxState
+                    JsonManager<RobloxState> legacyRobloxState = new();
+
+                    if (legacyRobloxState.IsSaved)
                     {
-                        if (Directory.Exists(path))
-                            Directory.Delete(path, true);
+                        if (legacyRobloxState.Load(false))
+                        {
+                            App.PlayerState.Prop.VersionGuid = legacyRobloxState.Prop.Player.VersionGuid;
+                            App.PlayerState.Prop.PackageHashes = legacyRobloxState.Prop.Player.PackageHashes;
+                            App.PlayerState.Prop.Size = legacyRobloxState.Prop.Player.Size;
+                            App.PlayerState.Prop.ModManifest = legacyRobloxState.Prop.ModManifest.ToDictionary(x => x, x => new ModFileEntry());
+
+                            App.StudioState.Prop.VersionGuid = legacyRobloxState.Prop.Studio.VersionGuid;
+                            App.StudioState.Prop.PackageHashes = legacyRobloxState.Prop.Studio.PackageHashes;
+                            App.StudioState.Prop.Size = legacyRobloxState.Prop.Studio.Size;
+                        }
+
+                        legacyRobloxState.Delete();
                     }
-                    catch (Exception ex)
+
+                    if (App.Settings.Prop.Theme == Theme.Custom)
                     {
-                        App.Logger.WriteException(LOG_IDENT, ex);
+                        App.Settings.Prop.Theme = Theme.Default;
+                    }
+
+                    if (File.Exists(Path.Combine(Paths.Cache, "GameHistory.json")))
+                    {
+                        File.Delete(Path.Combine(Paths.Cache, "GameHistory.json"));
                     }
                 }
 
-                if (Utilities.CompareVersions(existingVer, "2.3.0") == VersionComparison.LessThan)
+                if (Utilities.CompareVersions(existingVer, "1.4.1.0") == VersionComparison.LessThan)
                 {
-                    string injectorLocation = Path.Combine(Paths.Modifications, "dxgi.dll");
-                    string configLocation = Path.Combine(Paths.Modifications, "ReShade.ini");
-
-                    if (File.Exists(injectorLocation))
-                        File.Delete(injectorLocation);
-
-                    if (File.Exists(configLocation))
-                        File.Delete(configLocation);
-                }
-
-
-                if (Utilities.CompareVersions(existingVer, "2.5.0") == VersionComparison.LessThan)
-                {
-                    App.FastFlags.SetValue("DFFlagDisableDPIScale", null);
-                    App.FastFlags.SetValue("DFFlagVariableDPIScale2", null);
-                }
-
-                if (Utilities.CompareVersions(existingVer, "2.6.0") == VersionComparison.LessThan)
-                {
-                    if (App.Settings.Prop.UseDisableAppPatch)
+                    if (File.Exists(Path.Combine(Paths.Cache, "GameHistory.json")))
                     {
+                        File.Delete(Path.Combine(Paths.Cache, "GameHistory.json"));
+                    }
+                }
+
+                if (Utilities.CompareVersions(existingVer, "1.4.2") == VersionComparison.LessThan)
+                {
+                    string clientSettingsPath = Path.Combine(Paths.Modifications, "ClientSettings");
+                    string migrationPath = Path.Combine(Paths.Modifications, "Migration from 1.4.1.0");
+                    string genCacheDir = Path.Combine(Path.GetTempPath(), "Froststrap", "mod-generator");
+                    string pluginCacheDir = Path.Combine(Paths.Roblox, "Plugins", "FroststrapStudioRPC.rbxmx");
+                    string targetSettingsPath = Path.Combine(Paths.Base, "ClientSettings");
+
+                    if (Directory.Exists(clientSettingsPath))
+                    {
+                        if (Directory.Exists(targetSettingsPath))
+                            Directory.Delete(targetSettingsPath, true);
+
+                        Directory.Move(clientSettingsPath, targetSettingsPath);
+                    }
+
+                    Directory.CreateDirectory(migrationPath);
+
+                    var directoryInfo = new DirectoryInfo(Paths.Modifications);
+
+                    foreach (FileSystemInfo info in directoryInfo.GetFileSystemInfos())
+                    {
+                        if (info.FullName == migrationPath)
+                            continue;
+
+                        string destPath = Path.Combine(migrationPath, info.Name);
+
                         try
                         {
-                            File.Delete(Path.Combine(Paths.Modifications, "ExtraContent\\places\\Mobile.rbxl"));
+                            if (info.Attributes.HasFlag(FileAttributes.Directory))
+                            {
+                                if (Directory.Exists(destPath)) Directory.Delete(destPath, true);
+                                Directory.Move(info.FullName, destPath);
+                            }
+                            else
+                            {
+                                if (File.Exists(destPath)) File.Delete(destPath);
+                                File.Move(info.FullName, destPath);
+                            }
                         }
-                        catch (Exception ex)
+                        catch (IOException ex)
                         {
-                            App.Logger.WriteException(LOG_IDENT, ex);
+                            App.Logger.WriteLine(LOG_IDENT, $"Could not migrate {info.Name}: {ex.Message}");
                         }
-
-                        App.Settings.Prop.EnableActivityTracking = true;
                     }
 
-                    if (App.Settings.Prop.BootstrapperStyle == BootstrapperStyle.ClassicFluentDialog)
-                        App.Settings.Prop.BootstrapperStyle = BootstrapperStyle.FluentDialog;
-
-                    _ = int.TryParse(App.FastFlags.GetPreset("Rendering.Framerate"), out int x);
-                    if (x == 0)
-                        App.FastFlags.SetPreset("Rendering.Framerate", null);
-                }
-
-                if (Utilities.CompareVersions(existingVer, "2.8.0") == VersionComparison.LessThan)
-                {
-                    if (isAutoUpgrade)
+                    if (Directory.Exists(genCacheDir))
                     {
-                        if (App.LaunchSettings.Args.Length == 0)
-                            App.LaunchSettings.RobloxLaunchMode = LaunchMode.Player;
-
-                        string? query = App.LaunchSettings.Args.FirstOrDefault(x => x.Contains("roblox"));
-
-                        if (query is not null)
-                        {
-                            App.LaunchSettings.RobloxLaunchMode = LaunchMode.Player;
-                            App.LaunchSettings.RobloxLaunchArgs = query;
-                        }
+                        Directory.Delete(genCacheDir, true);
+                        App.Logger.WriteLine(LOG_IDENT, "Deleted mod-generator cache for migration.");
                     }
 
-                    string oldDesktopPath = Path.Combine(Paths.Desktop, "Play Roblox.lnk");
-                    string oldStartPath = Path.Combine(Paths.WindowsStartMenu, "Bloxstrap");
-
-                    if (File.Exists(oldDesktopPath))
-                        File.Move(oldDesktopPath, DesktopShortcut, true);
-
-                    if (Directory.Exists(oldStartPath))
+                    if (Directory.Exists(pluginCacheDir))
                     {
-                        try
-                        {
-                            Directory.Delete(oldStartPath, true);
-                        }
-                        catch (Exception ex)
-                        {
-                            App.Logger.WriteException(LOG_IDENT, ex);
-                        }
-
-                        Shortcut.Create(Paths.Application, "", StartMenuShortcut);
+                        Directory.Delete(pluginCacheDir, true);
+                        App.Logger.WriteLine(LOG_IDENT, "Deleted studio plugin for migration.");
                     }
 
-                    Registry.CurrentUser.DeleteSubKeyTree("Software\\Bloxstrap", false);
-
-                    WindowsRegistry.RegisterPlayer();
-
-                    App.FastFlags.SetValue("FFlagDisableNewIGMinDUA", null);
-                    App.FastFlags.SetValue("FFlagFixGraphicsQuality", null);
-                }
-
-                if (Utilities.CompareVersions(existingVer, "2.8.1") == VersionComparison.LessThan)
-                {
-                    // wipe all escape menu flag presets
-                    App.FastFlags.SetValue("FIntNewInGameMenuPercentRollout3", null);
-                    App.FastFlags.SetValue("FFlagEnableInGameMenuControls", null);
-                    App.FastFlags.SetValue("FFlagEnableInGameMenuModernization", null);
-                    App.FastFlags.SetValue("FFlagEnableInGameMenuChrome", null);
-                    App.FastFlags.SetValue("FFlagFixReportButtonCutOff", null);
-                    App.FastFlags.SetValue("FFlagEnableMenuControlsABTest", null);
-                    App.FastFlags.SetValue("FFlagEnableV3MenuABTest3", null);
-                    App.FastFlags.SetValue("FFlagEnableInGameMenuChromeABTest3", null);
-                    App.FastFlags.SetValue("FFlagEnableInGameMenuChromeABTest4", null);
-                }
-
-                if (Utilities.CompareVersions(existingVer, "2.8.2") == VersionComparison.LessThan)
-                {
-                    string robloxDirectory = Path.Combine(Paths.Base, "Roblox");
-
-                    if (Directory.Exists(robloxDirectory))
-                    {
-                        try
-                        {
-                            Directory.Delete(robloxDirectory, true);
-                        }
-                        catch (Exception ex)
-                        {
-                            App.Logger.WriteLine(LOG_IDENT, "Failed to delete the Roblox directory");
-                            App.Logger.WriteException(LOG_IDENT, ex);
-                        }
-                    }
-                }
-
-                if (Utilities.CompareVersions(existingVer, "2.8.3") == VersionComparison.LessThan)
-                {
-                    // force reinstallation
-                    App.State.Prop.Player.VersionGuid = "";
-                    App.State.Prop.Studio.VersionGuid = "";
+                    if (File.Exists(Path.Combine(Paths.Cache, "channelCache.json"))) File.Delete(Path.Combine(Paths.Cache, "channelCache.json"));
+                    if (File.Exists(Path.Combine(Paths.Cache, "channelCacheMeta.json"))) File.Delete(Path.Combine(Path.Combine(Paths.Cache, "channelCacheMeta.json")));
+                    if (File.Exists(Path.Combine(Paths.Cache, "datacenters_cache.json"))) File.Delete(Path.Combine(Path.Combine(Paths.Cache, "datacenters_cache.json")));
+                    if (File.Exists(Path.Combine(Paths.Roblox, "LocalStorage", "RobloxCookies.dat"))) File.Delete(Path.Combine(Path.Combine(Paths.Roblox, "LocalStorage", "RobloxCookies.dat")));
                 }
 
                 App.Settings.Save();
                 App.FastFlags.Save();
                 App.State.Save();
+                if (App.PlayerState.Loaded)
+                    App.PlayerState.Save();
+
+                if (App.StudioState.Loaded)
+                    App.StudioState.Save();
             }
 
             if (currentVer is null)
@@ -648,7 +672,7 @@ namespace Bloxstrap
             if (isAutoUpgrade)
             {
 #pragma warning disable CS0162 // Unreachable code detected
-                if (OpenReleaseNotes)
+                if (false)
                     Utilities.ShellExecute($"https://github.com/{App.ProjectRepository}/wiki/Release-notes-for-Bloxstrap-v{currentVer}");
 #pragma warning restore CS0162 // Unreachable code detected
             }
@@ -662,71 +686,87 @@ namespace Bloxstrap
             }
         }
 
-        public void ImportSettingsFromBloxstrap()
+        public void ImportSettingsFromSelectedApp()
         {
-            const string LOG_IDENT = "Installer::ImportSettings";
+            if (ImportSource == ImportSettingsFrom.None)
+            {
+                string settingsPath = Path.Combine(InstallLocation, "Settings.json");
+                if (File.Exists(settingsPath))
+                {
+                    App.Settings.Load(false);
+                }
+                return;
+            }
 
-            if (!Directory.Exists(BloxstrapInstallDirectory))
+            string sourceDir = ImportSource switch
+            {
+                ImportSettingsFrom.Bloxstrap => Path.Combine(Paths.LocalAppData, "Bloxstrap"),
+                ImportSettingsFrom.Fishstrap => Path.Combine(Paths.LocalAppData, "Fishstrap"),
+                ImportSettingsFrom.Lunastrap => Path.Combine(Paths.LocalAppData, "Lunastrap"),
+                ImportSettingsFrom.Luczystrap => Path.Combine(Paths.LocalAppData, "Luczystrap"),
+                _ => throw new ArgumentOutOfRangeException(nameof(ImportSource), "Invalid import source")
+            };
+
+            if (!Directory.Exists(sourceDir))
             {
                 Frontend.ShowMessageBox(Strings.Installer_InstallationNotFound, MessageBoxImage.Exclamation);
                 return;
-            } // bloxstrap default directory is not present
-
-            foreach (string FileName in FilesForImporting)
-            {
-                string Source = Path.Combine(BloxstrapInstallDirectory, FileName);
-                if (!Directory.Exists(Source) && !File.Exists(Source))
-                    continue; // customthemes
-
-                FileAttributes Attributes = File.GetAttributes(Source);
-                bool IsDirectory = Attributes.HasFlag(FileAttributes.Directory);
-
-                App.Logger.WriteLine(LOG_IDENT, $"Found file {Source}, IsDirectory: {IsDirectory}");
-
-                if (IsDirectory)
-                {
-                    // delete existing file from fishstrap folder
-                    string ExistingFile = Path.Combine(InstallLocation, FileName);
-                    if (Directory.Exists(ExistingFile))
-                    {
-                        App.Logger.WriteLine(LOG_IDENT, $"Deleting existing {FileName}...");
-                        Directory.Delete(ExistingFile, true);
-                    }
-
-                    // https://stackoverflow.com/questions/58744/copy-the-entire-contents-of-a-directory-in-c-sharp
-                    // we could use Directory.Move but that deletes the directory from bloxstrap folder
-                    // instead we will use this
-
-                    // create the directory
-                    Directory.CreateDirectory(ExistingFile);
-
-                    // Now Create all of the directories
-                    foreach (string dirPath in Directory.GetDirectories(Source, "*", SearchOption.AllDirectories))
-                    {
-                        Directory.CreateDirectory(dirPath.Replace(Source, ExistingFile));
-                    }
-
-                    // Copy all the files & Replaces any files with the same name
-                    foreach (string newPath in Directory.GetFiles(Source, "*.*", SearchOption.AllDirectories))
-                    {
-                        File.Copy(newPath, newPath.Replace(Source, ExistingFile), true);
-                    }
-                } else
-                {
-                    string FileLocation = Path.Combine(InstallLocation, FileName);
-                    // we dont have to delete the file here
-                    // we can simply override it
-                    File.Copy(Source, FileLocation, true);
-                    App.Logger.WriteLine(LOG_IDENT, $"Overridding {FileName} in InstallLocation");
-                }
             }
 
-            App.Logger.WriteLine(LOG_IDENT, $"Importing succeded");
+            foreach (string fileName in FilesForImporting)
+            {
+                string actualSourceFile = fileName;
+                string actualDestFile = fileName;
 
-            // these happen later on in installation process
-            // App.Settings.Load(false);
-            // App.State.Load(false);
-            // App.FastFlags.Load(false);
+                string sourcePath = Path.Combine(sourceDir, actualSourceFile);
+                string destinationPath = Path.Combine(InstallLocation, actualDestFile);
+
+                try
+                {
+                    if (!File.Exists(sourcePath) && !Directory.Exists(sourcePath))
+                    {
+                        App.Logger.WriteLine("Installer::ImportSettings", $"Source path does not exist: {sourcePath}");
+                        continue;
+                    }
+
+                    FileAttributes attr = File.GetAttributes(sourcePath);
+                    bool isDirectory = attr.HasFlag(FileAttributes.Directory);
+
+                    if (isDirectory)
+                    {
+                        Directory.CreateDirectory(destinationPath);
+                        CopyDirectoryContents(sourcePath, destinationPath);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                        File.Copy(sourcePath, destinationPath, overwrite: true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteLine("Installer::ImportSettings", $"Failed to import '{fileName}': {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Recursively copies all contents from source directory to destination directory.
+        /// Existing files are overwritten, directories are merged.
+        /// </summary>
+        private void CopyDirectoryContents(string sourceDir, string destDir)
+        {
+            foreach (var directoryPath in Directory.GetDirectories(sourceDir, "*", SearchOption.AllDirectories))
+            {
+                string targetDir = directoryPath.Replace(sourceDir, destDir);
+                Directory.CreateDirectory(targetDir);
+            }
+
+            foreach (var filePath in Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
+            {
+                string targetFile = filePath.Replace(sourceDir, destDir);
+                File.Copy(filePath, targetFile, overwrite: true);
+            }
         }
     }
 }

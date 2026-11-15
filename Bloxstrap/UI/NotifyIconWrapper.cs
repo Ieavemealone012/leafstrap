@@ -1,6 +1,6 @@
 ﻿using Bloxstrap.Integrations;
-using Bloxstrap.UI.Elements.About;
 using Bloxstrap.UI.Elements.ContextMenu;
+using System.Windows;
 
 namespace Bloxstrap.UI
 {
@@ -11,9 +11,9 @@ namespace Bloxstrap.UI
         private bool _disposing = false;
 
         private readonly System.Windows.Forms.NotifyIcon _notifyIcon;
-        
+
         private readonly MenuContainer _menuContainer;
-        
+
         private readonly Watcher _watcher;
 
         private ActivityWatcher? _activityWatcher => _watcher.ActivityWatcher;
@@ -29,13 +29,65 @@ namespace Bloxstrap.UI
             _notifyIcon = new(new System.ComponentModel.Container())
             {
                 Icon = Properties.Resources.IconBloxstrap,
-                Text = "Leafstrap",
+                Text = App.ProjectName,
                 Visible = true
             };
 
             _notifyIcon.MouseClick += MouseClickEventHandler;
 
-            if (_activityWatcher is not null && App.Settings.Prop.ShowServerDetails)
+            _notifyIcon.MouseDoubleClick += (s, e) =>
+            {
+                if (e.Button != System.Windows.Forms.MouseButtons.Left)
+                    return;
+
+                switch (App.Settings.Prop.DoubleClickAction)
+                {
+                    case TrayDoubleClickAction.None:
+                        Frontend.ShowMessageBox(
+                            "You don’t have the double-click action set to anything.",
+                            MessageBoxImage.Information
+                        );
+                        break;
+
+                    case TrayDoubleClickAction.GameHistory:
+                        if (!App.Settings.Prop.ShowGameHistoryMenu)
+                        {
+                            Frontend.ShowMessageBox(
+                                "Enable 'Game History' in settings to use this feature.",
+                                MessageBoxImage.Information
+                            );
+                            return;
+                        }
+
+                        new ServerHistory(_activityWatcher!).Show();
+                        break;
+
+                    case TrayDoubleClickAction.ServerInfo:
+                        if (!App.Settings.Prop.ShowServerDetails)
+                        {
+                            Frontend.ShowMessageBox(
+                                "Enable 'Query Server Location' in settings to use this feature.",
+                                MessageBoxImage.Information
+                            );
+                            return;
+                        }
+
+                        if (_activityWatcher is not null && _activityWatcher.InGame)
+                        {
+                            _menuContainer!.ShowServerInformationWindow();
+                        }
+                        else
+                        {
+                            Frontend.ShowMessageBox(
+                                "Join a game first to view server information.",
+                                MessageBoxImage.Information
+                            );
+                        }
+                        break;
+                }
+            };
+
+            if (_activityWatcher is not null && (App.Settings.Prop.ShowServerDetails || App.Settings.Prop.ShowServerUptime))
                 _activityWatcher.OnGameJoin += OnGameJoin;
 
             _menuContainer = new(_watcher);
@@ -58,11 +110,6 @@ namespace Bloxstrap.UI
         {
             if (_activityWatcher is null)
                 return;
-            
-            string? serverLocation = await _activityWatcher.Data.QueryServerLocation();
-
-            if (string.IsNullOrEmpty(serverLocation))
-                return;
 
             string title = _activityWatcher.Data.ServerType switch
             {
@@ -72,9 +119,44 @@ namespace Bloxstrap.UI
                 _ => ""
             };
 
+            bool locationActive = App.Settings.Prop.ShowServerDetails;
+            bool uptimeActive = App.Settings.Prop.ShowServerUptime;
+
+            string? serverLocation = "";
+            if (locationActive)
+                serverLocation = await _activityWatcher.Data.QueryServerLocation();
+
+            string? serverUptime = "";
+            if (uptimeActive)
+            {
+                DateTime? serverTime = await _activityWatcher.Data.QueryServerTime();
+                TimeSpan _serverUptime = DateTime.UtcNow - serverTime.Value;
+
+                if (_serverUptime.TotalSeconds > 60)
+                    serverUptime = Time.FormatTimeSpan(_serverUptime);
+                else
+                    serverUptime = Strings.ContextMenu_ServerInformation_Notification_ServerNotTracked;
+            }
+
+            if (
+                string.IsNullOrEmpty(serverLocation) && locationActive ||
+                string.IsNullOrEmpty(serverUptime) && uptimeActive
+                )
+                return;
+
+            string notifContent = Strings.Common_UnknownStatus;
+
+            // since we dont have an actual localization, this is probably the best way of doing that
+            if (locationActive && !uptimeActive)
+                notifContent = String.Format(Strings.ContextMenu_ServerInformation_Notification_Text, serverLocation);
+            else if (!locationActive && uptimeActive)
+                notifContent = String.Format(Strings.ContextMenu_ServerInformationUptime_Notification_Text, serverUptime);
+            else if (locationActive && uptimeActive)
+                notifContent = String.Format(Strings.ContextMenu_ServerInformationUptimeAndLocation_Notification_Text, serverLocation, serverUptime);
+
             ShowAlert(
                 title,
-                String.Format(Strings.ContextMenu_ServerInformation_Notification_Text, serverLocation),
+                notifContent,
                 10,
                 (_, _) => _menuContainer.ShowServerInformationWindow()
             );
@@ -108,7 +190,7 @@ namespace Bloxstrap.UI
             Task.Run(async () =>
             {
                 await Task.Delay(duration * 1000);
-             
+
                 _notifyIcon.BalloonTipClicked -= clickHandler;
 
                 App.Logger.WriteLine(LOG_IDENT, "Duration over, erasing current click handler");

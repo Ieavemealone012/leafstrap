@@ -93,6 +93,10 @@ namespace Bloxstrap.UI
                 BootstrapperStyle.LegacyDialog2011 => new LegacyDialog2011(),
                 BootstrapperStyle.ProgressDialog => new ProgressDialog(),
                 BootstrapperStyle.ClassicFluentDialog => new ClassicFluentDialog(),
+                BootstrapperStyle.Roblox2016Dialog => new Roblox2016Dialog(),
+                // Preserve compatibility with settings saved before the old screen was removed.
+                BootstrapperStyle.FroststrapDialog => new ClassicFluentDialog(),
+                BootstrapperStyle.TwentyFiveDialog => new TwentyFiveDialog(),
                 BootstrapperStyle.ByfronDialog => new ByfronDialog(),
                 BootstrapperStyle.FluentDialog => new FluentDialog(false),
                 BootstrapperStyle.FluentAeroDialog => new FluentDialog(true),
@@ -109,6 +113,18 @@ namespace Bloxstrap.UI
                 messagebox.ShowDialog();
                 return messagebox.Result;
             }));
+        }
+
+        public static void ShowBalloonTip(string title, string message, System.Windows.Forms.ToolTipIcon icon = System.Windows.Forms.ToolTipIcon.None, int timeout = 5)
+        {
+            var notifyIcon = new System.Windows.Forms.NotifyIcon
+            {
+                Icon = Properties.Resources.IconBloxstrap,
+                Text = App.ProjectName,
+                Visible = true
+            };
+
+            notifyIcon.ShowBalloonTip(timeout, title, message, icon);
         }
     }
 }

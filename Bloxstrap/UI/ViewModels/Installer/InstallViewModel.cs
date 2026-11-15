@@ -10,14 +10,14 @@ namespace Bloxstrap.UI.ViewModels.Installer
 
         private readonly string _originalInstallLocation;
 
-        public EventHandler<bool>? SetCanContinueEvent;
+        public event EventHandler<bool>? SetCanContinueEvent;
 
-        public string InstallLocation 
+        public string InstallLocation
         {
             get => installer.InstallLocation;
             set
             {
-                if (!String.IsNullOrEmpty(ErrorMessage))
+                if (!string.IsNullOrEmpty(ErrorMessage))
                 {
                     SetCanContinueEvent?.Invoke(this, true);
 
@@ -26,9 +26,27 @@ namespace Bloxstrap.UI.ViewModels.Installer
                 }
 
                 installer.InstallLocation = value;
+                OnPropertyChanged(nameof(InstallLocation));
                 OnPropertyChanged(nameof(DataFoundMessageVisibility));
             }
         }
+
+        private List<ImportSettingsFrom> _availableImportSources = new();
+        public List<ImportSettingsFrom> AvailableImportSources
+        {
+            get => _availableImportSources;
+            set
+            {
+                _availableImportSources = value;
+                OnPropertyChanged(nameof(AvailableImportSources));
+                OnPropertyChanged(nameof(ImportSettingsEnabled));
+                OnPropertyChanged(nameof(ShowNotFound)); // Update this too
+            }
+        }
+
+        public bool ImportSettingsEnabled => AvailableImportSources.Count > 1;
+
+        public bool ShowNotFound => AvailableImportSources.Count <= 1;
 
         public Visibility DataFoundMessageVisibility => installer.ExistingDataPresent ? Visibility.Visible : Visibility.Collapsed;
 
@@ -39,7 +57,7 @@ namespace Bloxstrap.UI.ViewModels.Installer
             get => installer.CreateDesktopShortcuts;
             set => installer.CreateDesktopShortcuts = value;
         }
-        
+
         public bool CreateStartMenuShortcuts
         {
             get => installer.CreateStartMenuShortcuts;
@@ -49,17 +67,18 @@ namespace Bloxstrap.UI.ViewModels.Installer
         public bool ImportSettings
         {
             get => installer.ImportSettings;
-            set => installer.ImportSettings = value;
-        }
-
-        public bool ImportSettingsEnabled
-        {
-            get => Directory.Exists(installer.BloxstrapInstallDirectory);
-        }
-
-        public bool ShowNotFound // im lazy
-        {
-            get => !Directory.Exists(installer.BloxstrapInstallDirectory);
+            set
+            {
+                installer.ImportSettings = value;
+                OnPropertyChanged(nameof(ImportSettings));
+                // Trigger validation update if disabling import
+                if (!value)
+                {
+                    installer.InstallLocationError = "";
+                    SetCanContinueEvent?.Invoke(this, true);
+                    OnPropertyChanged(nameof(ErrorMessage));
+                }
+            }
         }
 
         public ICommand BrowseInstallLocationCommand => new RelayCommand(BrowseInstallLocation);
@@ -68,9 +87,45 @@ namespace Bloxstrap.UI.ViewModels.Installer
 
         public ICommand OpenFolderCommand => new RelayCommand(OpenFolder);
 
+        public ImportSettingsFrom SelectedImportSource
+        {
+            get => installer.ImportSource;
+            set
+            {
+                installer.ImportSource = value;
+                OnPropertyChanged(nameof(SelectedImportSource));
+            }
+        }
+
         public InstallViewModel()
         {
             _originalInstallLocation = installer.InstallLocation;
+            UpdateAvailableImportSources();
+
+            OnPropertyChanged(nameof(SelectedImportSource));
+        }
+
+        private void UpdateAvailableImportSources()
+        {
+            var availableSources = new List<ImportSettingsFrom> { ImportSettingsFrom.None };
+
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+            if (Directory.Exists(Path.Combine(localAppData, "Bloxstrap")))
+                availableSources.Add(ImportSettingsFrom.Bloxstrap);
+
+            if (Directory.Exists(Path.Combine(localAppData, "Fishstrap")))
+                availableSources.Add(ImportSettingsFrom.Fishstrap);
+
+            if (Directory.Exists(Path.Combine(localAppData, "Lunastrap")))
+                availableSources.Add(ImportSettingsFrom.Lunastrap);
+
+            if (Directory.Exists(Path.Combine(localAppData, "Luczystrap")))
+                availableSources.Add(ImportSettingsFrom.Luczystrap);
+
+            AvailableImportSources = availableSources;
+
+            SelectedImportSource = ImportSettingsFrom.None;
         }
 
         public bool DoInstall()
@@ -78,13 +133,11 @@ namespace Bloxstrap.UI.ViewModels.Installer
             if (!installer.CheckInstallLocation())
             {
                 SetCanContinueEvent?.Invoke(this, false);
-
                 OnPropertyChanged(nameof(ErrorMessage));
                 return false;
             }
 
             installer.DoInstall();
-
             return true;
         }
 

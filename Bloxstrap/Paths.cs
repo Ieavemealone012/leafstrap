@@ -18,6 +18,7 @@
 
         public static string Base { get; private set; } = "";
         public static string Downloads { get; private set; } = "";
+        public static string Cache { get; private set; } = "";
 
         public static string SavedFlagProfiles { get; private set; } = "";
         public static string Logs { get; private set; } = "";
@@ -26,10 +27,13 @@
         public static string Modifications { get; private set; } = "";
         public static string Roblox { get; private set; } = "";
         public static string CustomThemes { get; private set; } = "";
-
+        public static string RobloxLogs { get; private set; } = "";
+        public static string RobloxCache { get; private set; } = "";
+        public static string CustomCursors { get; private set; } = "";
         public static string Application { get; private set; } = "";
 
-        public static string CustomFont => Path.Combine(Modifications, "content\\fonts\\CustomFont.ttf");
+        public static string CustomFont => Path.Combine(PresetModifications, "content", "fonts", "CustomFont.ttf");
+        public static string PresetModifications => Path.Combine(Modifications, "Preset Mods");
 
         public static bool Initialized => !String.IsNullOrEmpty(Base);
 
@@ -42,10 +46,15 @@
             Integrations = Path.Combine(Base, "Integrations");
             Versions = Path.Combine(Base, "Versions");
             Modifications = Path.Combine(Base, "Modifications");
-            Roblox = Path.Combine(Base, "Roblox");
+            Roblox = Path.Combine(LocalAppData, "Roblox");
+            RobloxLogs = Path.Combine(Roblox, "logs");
+            RobloxCache = Path.Combine(Path.GetTempPath(), "Roblox");
             CustomThemes = Path.Combine(Base, "CustomThemes");
+            CustomCursors = Path.Combine(Base, "CustomCursorsSets");
+            Cache = Path.Combine(Base, "Cache");
 
             Application = Path.Combine(Base, $"{App.ProjectName}.exe");
         }
+
     }
 }

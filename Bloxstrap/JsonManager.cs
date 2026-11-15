@@ -1,40 +1,71 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Reflection;
 using System.Windows;
-using System.Xml.Linq;
 
 namespace Bloxstrap
 {
     public class JsonManager<T> where T : class, new()
     {
-        public T OriginalProp { get; set; } = new();
+        protected T _prop = new();
 
-        public T Prop { get; set; } = new();
+        public virtual T Prop
+        {
+            get => _prop;
+            set => _prop = value;
+        }
 
-        public virtual string ClassName => typeof(T).Name;
-        
+        public string? LastFileHash { get; private set; }
+
+        public bool Loaded { get; protected set; } = false;
+
+        public virtual string ClassName { get; }
+
         public virtual string ProfilesLocation => Path.Combine(Paths.Base, $"Profiles.json");
 
-        public virtual string FileLocation => Path.Combine(Paths.Base, $"{ClassName}.json");
+        public virtual string FileName => $"{ClassName}.json";
+
+        public virtual string FileLocation => Path.Combine(Paths.Base, FileName);
+
+        public bool IsSaved => File.Exists(FileLocation);
 
         public virtual string LOG_IDENT_CLASS => $"JsonManager<{ClassName}>";
 
-        public virtual void Load(bool alertFailure = true)
+        public JsonManager(string? className = null)
         {
-            
+            ClassName = string.IsNullOrEmpty(className) ? typeof(T).Name : className;
+        }
+
+        public virtual bool Load(bool alertFailure = true)
+        {
             string LOG_IDENT = $"{LOG_IDENT_CLASS}::Load";
 
             App.Logger.WriteLine(LOG_IDENT, $"Loading from {FileLocation}...");
 
             try
             {
-                T? settings = JsonSerializer.Deserialize<T>(File.ReadAllText(FileLocation));
+                if (File.Exists(FileLocation))
+                {
+                    string contents = File.ReadAllText(FileLocation);
 
-                if (settings is null)
-                    throw new ArgumentNullException("Deserialization returned null");
+                    T? settings = JsonSerializer.Deserialize<T>(contents);
 
-                Prop = settings;
+                    if (settings is null)
+                        throw new ArgumentNullException("Deserialization returned null");
 
-                App.Logger.WriteLine(LOG_IDENT, "Loaded successfully!");
+                    _prop = settings;
+                    Loaded = true;
+                    LastFileHash = MD5Hash.FromString(contents);
+
+                    App.Logger.WriteLine(LOG_IDENT, "Loaded successfully!");
+
+                    return true;
+                }
+                else
+                {
+                    App.Logger.WriteLine(LOG_IDENT, $"Could not find {FileLocation}.");
+                    Loaded = true;
+
+                    return false;
+                }
             }
             catch (Exception ex)
             {
@@ -65,7 +96,10 @@ namespace Bloxstrap
                     }
                 }
 
+                Loaded = true;
                 Save();
+
+                return false;
             }
         }
 
@@ -79,7 +113,11 @@ namespace Bloxstrap
 
             try
             {
-                File.WriteAllText(FileLocation, JsonSerializer.Serialize(Prop, new JsonSerializerOptions { WriteIndented = true }));
+                string contents = JsonSerializer.Serialize(Prop, new JsonSerializerOptions { WriteIndented = true });
+
+                File.WriteAllText(FileLocation, contents);
+
+                LastFileHash = MD5Hash.FromString(contents);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
@@ -94,6 +132,34 @@ namespace Bloxstrap
 
             App.Logger.WriteLine(LOG_IDENT, "Save complete!");
         }
+
+        public virtual void Delete()
+        {
+            string LOG_IDENT = $"{LOG_IDENT_CLASS}::Delete";
+
+            try
+            {
+                if (File.Exists(FileLocation))
+                {
+                    File.Delete(FileLocation);
+
+                    Loaded = false;
+                    App.Logger.WriteLine(LOG_IDENT, "Delete complete!");
+                }
+                else
+                {
+                    App.Logger.WriteLine(LOG_IDENT, "File does not exist on disk");
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Failed to delete");
+                App.Logger.WriteException(LOG_IDENT, ex);
+
+                // should we notify?
+            }
+        }
+
 
         public void SaveProfile(string name)
         {
@@ -134,7 +200,6 @@ namespace Bloxstrap
             if (string.IsNullOrEmpty(name))
                 return;
 
-
             try
             {
                 if (!Directory.Exists(BaseDir))
@@ -162,6 +227,9 @@ namespace Bloxstrap
                 if (settings is null)
                     throw new ArgumentNullException("Deserialization returned null");
 
+                App.FastFlags.suspendUndoSnapshot = true;
+                App.FastFlags.SaveUndoSnapshot();
+
                 if (clearFlags == true)
                 {
                     Prop = settings;
@@ -178,11 +246,135 @@ namespace Bloxstrap
                     }
                 }
 
+                App.FastFlags.suspendUndoSnapshot = false;
+
                 App.FastFlags.Save();
-            } catch (Exception ex)
-            {
-                Frontend.ShowMessageBox(ex.Message,MessageBoxImage.Error);
             }
+            catch (Exception ex)
+            {
+                Frontend.ShowMessageBox(ex.Message, MessageBoxImage.Error);
+            }
+        }
+
+        public void LoadPresetProfile(string? name, bool? clearFlags)
+        {
+            string LOGGER_STRING = "LoadProfile::Profiles";
+
+            if (string.IsNullOrEmpty(name))
+                return;
+
+            try
+            {
+                string profileJson = null!;
+                var assembly = Assembly.GetExecutingAssembly();
+                string resourcePrefix = "Bloxstrap.Resources.PresetFlags.";
+
+                // Check if name matches an embedded resource profile
+                string resourceFullName = resourcePrefix + name;
+                string? foundResource = assembly.GetManifestResourceNames()
+                                               .FirstOrDefault(r => r.Equals(resourceFullName, StringComparison.OrdinalIgnoreCase));
+
+                if (foundResource != null)
+                {
+                    // Load from embedded resource
+                    using Stream stream = assembly.GetManifestResourceStream(foundResource)!;
+                    using StreamReader reader = new StreamReader(stream);
+                    profileJson = reader.ReadToEnd();
+
+                    App.Logger.WriteLine(LOGGER_STRING, $"Loading embedded preset profile {name}");
+                }
+                else
+                {
+                    // Load from disk (user profiles)
+                    string BaseDir = Paths.SavedFlagProfiles;
+
+                    if (!Directory.Exists(BaseDir))
+                        Directory.CreateDirectory(BaseDir);
+
+                    string[] Files = Directory.GetFiles(BaseDir);
+                    string FoundFile = Files.FirstOrDefault(f => Path.GetFileName(f) == name) ?? string.Empty;
+
+                    if (string.IsNullOrEmpty(FoundFile))
+                        throw new FileNotFoundException($"Profile file '{name}' not found.");
+
+                    profileJson = File.ReadAllText(FoundFile);
+
+                    App.Logger.WriteLine(LOGGER_STRING, $"Loading user profile from file {name}");
+                }
+
+                // Deserialize the profile JSON
+                T? settings = JsonSerializer.Deserialize<T>(profileJson);
+
+                if (settings is null)
+                    throw new ArgumentNullException("Deserialization returned null");
+
+                App.FastFlags.suspendUndoSnapshot = true;
+                App.FastFlags.SaveUndoSnapshot();
+
+                if (clearFlags == true)
+                {
+                    Prop = settings;
+                }
+                else
+                {
+                    if (settings is IDictionary<string, object> settingsDict && Prop is IDictionary<string, object> propDict)
+                    {
+                        foreach (var kvp in settingsDict)
+                        {
+                            if (kvp.Value != null)
+                                propDict[kvp.Key] = kvp.Value;
+                        }
+                    }
+                }
+
+                App.FastFlags.suspendUndoSnapshot = false;
+
+                App.FastFlags.Save();
+            }
+            catch (Exception ex)
+            {
+                Frontend.ShowMessageBox(ex.Message, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Is the file on disk different to the one deserialised during this session?
+        /// </summary>
+        public bool HasFileOnDiskChanged()
+        {
+            // check if a file has been created since launch
+            if (string.IsNullOrEmpty(LastFileHash) && File.Exists(FileLocation))
+                return true;
+
+            return LastFileHash != MD5Hash.FromFile(FileLocation);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="JsonManager{T}"/> that will automatically load in the JSON if it has not been already
+    /// </summary>
+    /// <typeparam name="T">Class</typeparam>
+    public class LazyJsonManager<T> : JsonManager<T> where T : class, new()
+    {
+        public override T Prop
+        {
+            get
+            {
+                if (!Loaded)
+                    Load();
+
+                return _prop;
+            }
+            set
+            {
+                _prop = value;
+                Loaded = true;
+            }
+        }
+
+        public LazyJsonManager(string? className)
+            : base(className)
+        {
         }
     }
 }

@@ -1,55 +1,96 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
-
+using System.Windows.Threading;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
-
 using Bloxstrap.Integrations;
 
 namespace Bloxstrap.UI.Elements.ContextMenu
 {
-    /// <summary>
-    /// Interaction logic for NotifyIconMenu.xaml
-    /// </summary>
     public partial class MenuContainer
     {
-        // i wouldve gladly done this as mvvm but turns out that data binding just does not work with menuitems for some reason so idk this sucks
-
         private readonly Watcher _watcher;
-
         private ActivityWatcher? _activityWatcher => _watcher.ActivityWatcher;
 
         private ServerInformation? _serverInformationWindow;
-
+        private GameInformation? _gameInformationWindow;
         private ServerHistory? _gameHistoryWindow;
 
-        private OutputConsole? _OutputConsole;
-
-        private ChatLogs? _ChatLogs;
+        private Stopwatch _totalPlaytimeStopwatch = new Stopwatch();
+        private TimeSpan _accumulatedTotalPlaytime = TimeSpan.Zero;
+        private DispatcherTimer? _playtimeTimer;
+        private DateTime? _studioPlaceJoinTime = null;
 
         public MenuContainer(Watcher watcher)
         {
             InitializeComponent();
-
             _watcher = watcher;
 
             if (_activityWatcher is not null)
             {
-                _activityWatcher.OnLogOpen += ActivityWatcher_OnLogOpen;
                 _activityWatcher.OnGameJoin += ActivityWatcher_OnGameJoin;
                 _activityWatcher.OnGameLeave += ActivityWatcher_OnGameLeave;
+                _activityWatcher.OnStudioPlaceOpened += ActivityWatcher_OnStudioPlaceOpened;
+                _activityWatcher.OnStudioPlaceClosed += ActivityWatcher_OnStudioPlaceClosed;
 
-                if (!App.Settings.Prop.UseDisableAppPatch)
-                    GameHistoryMenuItem.Visibility = Visibility.Visible;
+                if (_activityWatcher.InRobloxStudio)
+                {
+                    InviteDeeplinkMenuItem.Visibility = Visibility.Collapsed;
+                    ServerDetailsMenuItem.Visibility = Visibility.Collapsed;
+                    GameInformationMenuItem.Visibility = Visibility.Collapsed;
+                    GameHistoryMenuItem.Visibility = Visibility.Collapsed;
+                    RegionMenuRoot.Visibility = Visibility.Collapsed;
+
+                    if (App.Settings.Prop.PlaytimeCounter)
+                    {
+                        StartTotalPlaytimeTimer();
+                        PlaytimeMenuItem.Visibility = Visibility.Visible;
+                        if (_activityWatcher.InStudioPlace) _studioPlaceJoinTime = DateTime.Now;
+                    }
+                }
+                else
+                {
+                    if (App.Settings.Prop.PlaytimeCounter)
+                        StartTotalPlaytimeTimer();
+
+
+                    UpdateRegionJoinUI();
+                    PopulateRegionMenu();
+
+                    if (!App.Settings.Prop.ShowGameHistoryMenu)
+                        GameHistoryMenuItem.Visibility = Visibility.Collapsed;
+                }
             }
 
-            if (_watcher.RichPresence is not null)
-                RichPresenceMenuItem.Visibility = Visibility.Visible;
-
+            RichPresenceMenuItem.Visibility = (_watcher.PlayerRichPresence is not null || _watcher.StudioRichPresence is not null) ? Visibility.Visible : Visibility.Collapsed;
             VersionTextBlock.Text = $"{App.ProjectName} v{App.Version}";
         }
+
+        private void StartTotalPlaytimeTimer()
+        {
+            _totalPlaytimeStopwatch.Start();
+            _playtimeTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _playtimeTimer.Tick += PlaytimeTimer_Tick;
+            _playtimeTimer.Start();
+        }
+
+        private void PlaytimeTimer_Tick(object? sender, EventArgs e)
+        {
+            TimeSpan total = _accumulatedTotalPlaytime + _totalPlaytimeStopwatch.Elapsed;
+            if (_activityWatcher == null) return;
+
+            if (_activityWatcher.InStudioPlace && _studioPlaceJoinTime.HasValue)
+                PlaytimeTextBlock.Text = $"Total: {FormatTimeSpan(total)} | Studio: {FormatTimeSpan(DateTime.Now - _studioPlaceJoinTime.Value)}";
+            else if (_activityWatcher.InGame)
+                PlaytimeTextBlock.Text = $"Total: {FormatTimeSpan(total)} | Game: {FormatTimeSpan(DateTime.Now - _activityWatcher.Data.TimeJoined)}";
+            else
+                PlaytimeTextBlock.Text = $"Total: {FormatTimeSpan(total)}";
+        }
+
+        private static string FormatTimeSpan(TimeSpan ts) =>
+            ts.TotalHours >= 1 ? $"{(int)ts.TotalHours}:{ts.Minutes:D2}:{ts.Seconds:D2}" : $"{ts.Minutes}:{ts.Seconds:D2}";
 
         public void ShowServerInformationWindow()
         {
@@ -65,74 +106,103 @@ namespace Bloxstrap.UI.Elements.ContextMenu
                 _serverInformationWindow.Activate();
         }
 
-        public void ActivityWatcher_OnLogOpen(object? sender, EventArgs e) => 
-            Dispatcher.Invoke(() => LogTracerMenuItem.Visibility = Visibility.Visible);
-
-        public void ActivityWatcher_OnGameJoin(object? sender, EventArgs e)
+        public void ShowGameInformationWindow(long placeId, long universeId)
         {
-            if (_activityWatcher is null)
-                return;
+            if (_gameInformationWindow is null)
+            {
+                _gameInformationWindow = new GameInformation(placeId, universeId);
+                _gameInformationWindow.Closed += (_, _) => _gameInformationWindow = null;
+            }
 
-            Dispatcher.Invoke(() => {
-                if (_activityWatcher.Data.ServerType == ServerType.Public)
+            if (!_gameInformationWindow.IsVisible)
+                _gameInformationWindow.ShowDialog();
+            else
+                _gameInformationWindow.Activate();
+        }
+
+        private void ActivityWatcher_OnGameJoin(object? sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (_activityWatcher?.Data.ServerType == ServerType.Public)
                     InviteDeeplinkMenuItem.Visibility = Visibility.Visible;
 
                 ServerDetailsMenuItem.Visibility = Visibility.Visible;
-
-                if (App.FastFlags.GetPreset("Players.LogLevel") == "trace")
-                {
-                    OutputConsoleMenuItem.Visibility = Visibility.Visible;
-                    ChatLogsMenuItem.Visibility = Visibility.Visible;
-                }
+                GameInformationMenuItem.Visibility = Visibility.Visible;
+                RegionMenuRoot.Visibility = Visibility.Visible;
             });
         }
 
-        public void ActivityWatcher_OnGameLeave(object? sender, EventArgs e)
+        private void ActivityWatcher_OnGameLeave(object? sender, EventArgs e)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 InviteDeeplinkMenuItem.Visibility = Visibility.Collapsed;
                 ServerDetailsMenuItem.Visibility = Visibility.Collapsed;
-
-                if (App.FastFlags.GetPreset("Players.LogLevel") == "trace")
-                {
-                    OutputConsoleMenuItem.Visibility = Visibility.Collapsed;
-                    ChatLogsMenuItem.Visibility = Visibility.Collapsed;
-
-                    _ChatLogs?.Close();
-                    _OutputConsole?.Close();
-                }
-
+                GameInformationMenuItem.Visibility = Visibility.Collapsed;
+                RegionMenuRoot.Visibility = Visibility.Collapsed;
                 _serverInformationWindow?.Close();
+                _gameInformationWindow?.Close();
+            });
+        }
+
+        private void ActivityWatcher_OnStudioPlaceOpened(object? sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _studioPlaceJoinTime = DateTime.Now;
+            });
+        }
+
+        private void ActivityWatcher_OnStudioPlaceClosed(object? sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _studioPlaceJoinTime = null;
             });
         }
 
         private void Window_Loaded(object? sender, RoutedEventArgs e)
         {
-            // this is an awful hack lmao im so sorry to anyone who reads this
-            // this is done to register the context menu wrapper as a tool window so it doesnt appear in the alt+tab switcher
-            // https://stackoverflow.com/a/551847/11852173
-
             HWND hWnd = (HWND)new WindowInteropHelper(this).Handle;
-
             int exStyle = PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
-            exStyle |= 0x00000080; //NativeMethods.WS_EX_TOOLWINDOW;
+            exStyle |= 0x00000080; // WS_EX_TOOLWINDOW
             PInvoke.SetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, exStyle);
         }
 
         private void Window_Closed(object sender, EventArgs e) => App.Logger.WriteLine("MenuContainer::Window_Closed", "Context menu container closed");
+        private void CloseWatcheMenuItem_Click(object sender, RoutedEventArgs e) => _watcher.Dispose();
 
-        private void RichPresenceMenuItem_Click(object sender, RoutedEventArgs e) => _watcher.RichPresence?.SetVisibility(((MenuItem)sender).IsChecked);
+        private void RichPresenceMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var isChecked = ((MenuItem)sender).IsChecked;
 
-        private void InviteDeeplinkMenuItem_Click(object sender, RoutedEventArgs e) => Clipboard.SetDataObject(_activityWatcher?.Data.GetInviteDeeplink());
+            _watcher.PlayerRichPresence?.SetVisibility(isChecked);
+            _watcher.StudioRichPresence?.SetVisibility(isChecked);
+        }
+
+        private void InviteDeeplinkMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            string deeplink = _activityWatcher?.Data?.GetInviteDeeplink() ?? "No activity data available";
+            Clipboard.SetDataObject(deeplink);
+        }
 
         private void ServerDetailsMenuItem_Click(object sender, RoutedEventArgs e) => ShowServerInformationWindow();
-
-        private void LogTracerMenuItem_Click(object sender, RoutedEventArgs e)
+        private void GameInformaionMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            string? location = _activityWatcher?.LogLocation;
+            long placeId = _activityWatcher?.Data?.PlaceId ?? 0;
+            long universeId = _activityWatcher?.Data?.UniverseId ?? 0;
 
-            if (location is not null)
-                Utilities.ShellExecute(location);
+            if (placeId == 0)
+            {
+                Frontend.ShowMessageBox(
+                    "Not currently in a game. Please join a game first to view game information.",
+                    MessageBoxImage.Error
+                );
+                return;
+            }
+
+            ShowGameInformationWindow(placeId, universeId);
         }
 
         private void CloseRobloxMenuItem_Click(object sender, RoutedEventArgs e)
@@ -166,38 +236,106 @@ namespace Bloxstrap.UI.Elements.ContextMenu
                 _gameHistoryWindow.Activate();
         }
 
-        private void OutputConsoleMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void PopulateRegionMenu()
         {
-            if (_activityWatcher is null)
-                throw new ArgumentNullException(nameof(_activityWatcher));
+            var fetcher = new RobloxServerFetcher();
+            var result = await fetcher.GetDatacentersAsync();
+            if (result == null || result.Value.regions == null) return;
 
-            if (_OutputConsole is null)
+            RegionSelectionComboBox.Items.Clear();
+
+            foreach (var region in result.Value.regions)
             {
-                _OutputConsole = new(_activityWatcher);
-                _OutputConsole.Closed += (_, _) => _OutputConsole = null;
+                RegionSelectionComboBox.Items.Add(region);
             }
 
-            if (!_OutputConsole.IsVisible)
-                _OutputConsole.ShowDialog();
-            else
-                _OutputConsole.Activate();
+            RegionSelectionComboBox.SelectedItem = App.Settings.Prop.SelectedRegion;
+
+            RegionSelectionComboBox.SelectionChanged += (s, e) =>
+            {
+                if (RegionSelectionComboBox.SelectedItem is string selected)
+                {
+                    App.Settings.Prop.SelectedRegion = selected;
+                    UpdateRegionJoinUI();
+                }
+            };
         }
 
-        private void ChatLogsMenuItemMenuItem_Click(object sender, RoutedEventArgs e)
+        private void UpdateRegionJoinUI()
         {
-            if (_activityWatcher is null)
-                throw new ArgumentNullException(nameof(_activityWatcher));
+            string region = App.Settings.Prop.SelectedRegion;
+            bool hasRegion = !string.IsNullOrEmpty(region);
 
-            if (_ChatLogs is null)
+            RegionJoinTextBlock.Text = hasRegion ? $"Region: {region}" : "Select Region";
+
+            AutoJoinRegionMenuItem.Header = hasRegion ? $"Join {region}" : "Please select a region";
+            AutoJoinRegionMenuItem.IsEnabled = hasRegion;
+        }
+
+        private async void AutoJoinRegionMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activityWatcher?.InGame != true || _activityWatcher?.Data == null)
             {
-                _ChatLogs = new(_activityWatcher);
-                _ChatLogs.Closed += (_, _) => _ChatLogs = null;
+                Frontend.ShowMessageBox("You need to be in a game to use this feature.", MessageBoxImage.Warning);
+                return;
             }
 
-            if (!_ChatLogs.IsVisible)
-                _ChatLogs.ShowDialog();
-            else
-                _ChatLogs.Activate();
+            string selectedRegion = App.Settings.Prop.SelectedRegion;
+            if (string.IsNullOrEmpty(selectedRegion)) return;
+
+            await FindAndJoinServerInRegion(_activityWatcher.Data.PlaceId, selectedRegion);
+        }
+
+        private async Task FindAndJoinServerInRegion(long placeId, string selectedRegion)
+        {
+            var fetcher = new RobloxServerFetcher();
+            await App.RemoteData.WaitUntilDataFetched();
+            string cookie = App.RemoteData.Prop.Dummy;
+
+            if (!await fetcher.ValidateCookieAsync(cookie))
+            {
+                Frontend.ShowMessageBox("Authentication failed. Please check your connection.", MessageBoxImage.Error);
+                return;
+            }
+
+            string? nextCursor = "";
+            for (int i = 0; i < 20; i++)
+            {
+                var result = await fetcher.FetchServerInstancesAsync(placeId, cookie, nextCursor);
+                var match = result.Servers.FirstOrDefault(s => s.Region == selectedRegion && s.Playing < s.MaxPlayers);
+
+                if (match != null)
+                {
+                    MessageBoxResult confirmResult = Frontend.ShowMessageBox(
+                            $"Found server in {selectedRegion} with {match.Playing}/{match.MaxPlayers} players.\nDo you want to join?",
+                            MessageBoxImage.Question,
+                            MessageBoxButton.YesNo
+                        );
+
+                    if (confirmResult == MessageBoxResult.Yes)
+                    {
+                        string robloxUri = $"roblox://experiences/start?placeId={placeId}&gameInstanceId={match.Id}";
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = robloxUri,
+                            UseShellExecute = true
+                        });
+
+                        _watcher.KillRobloxProcess();
+                        return;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(result.NextCursor)) break;
+                nextCursor = result.NextCursor;
+                await Task.Delay(200);
+            }
+
+            Frontend.ShowMessageBox($"No available {selectedRegion} servers found.", MessageBoxImage.Information);
         }
     }
 }

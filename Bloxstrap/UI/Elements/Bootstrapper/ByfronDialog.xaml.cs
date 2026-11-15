@@ -95,7 +95,7 @@ namespace Bloxstrap.UI.Elements.Bootstrapper
 
                 _viewModel.OnPropertyChanged(nameof(_viewModel.CancelEnabled));
                 _viewModel.OnPropertyChanged(nameof(_viewModel.CancelButtonVisibility));
-                
+
                 _viewModel.OnPropertyChanged(nameof(_viewModel.VersionTextVisibility));
                 _viewModel.OnPropertyChanged(nameof(_viewModel.VersionText));
             }
@@ -104,7 +104,7 @@ namespace Bloxstrap.UI.Elements.Bootstrapper
 
         public ByfronDialog()
         {
-            string version = Utilities.GetRobloxVersion(Bootstrapper?.IsStudioLaunch ?? false);
+            string version = Utilities.GetRobloxVersionStr(Bootstrapper?.IsStudioLaunch ?? false);
             _viewModel = new ByfronDialogViewModel(this, version);
             DataContext = _viewModel;
             Title = App.Settings.Prop.BootstrapperTitle;

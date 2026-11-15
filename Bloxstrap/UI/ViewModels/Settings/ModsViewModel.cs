@@ -1,118 +1,263 @@
-﻿using System.Windows;
+﻿using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows;
 using System.Windows.Input;
-
-using Microsoft.Win32;
-
-using Windows.Win32;
-using Windows.Win32.UI.Shell;
-using Windows.Win32.Foundation;
-
 using CommunityToolkit.Mvvm.Input;
-
-using Bloxstrap.Models.SettingTasks;
-using Bloxstrap.AppData;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace Bloxstrap.UI.ViewModels.Settings
 {
-    public class ModsViewModel : NotifyPropertyChangedViewModel
+    public partial class ModsViewModel : NotifyPropertyChangedViewModel
     {
-        private void OpenModsFolder() => Process.Start("explorer.exe", Paths.Modifications);
+        public event EventHandler? OpenModGeneratorEvent;
+        public event EventHandler? OpenCommunityModsEvent;
+        public event EventHandler? OpenPresetModsEvent;
+        private void OpenModGenerator() => OpenModGeneratorEvent?.Invoke(this, EventArgs.Empty);
+        private void OpenCommunityMods() => OpenCommunityModsEvent?.Invoke(this, EventArgs.Empty);
+        private void OpenPresetMods() => OpenPresetModsEvent?.Invoke(this, EventArgs.Empty);
+        public ICommand OpenModGeneratorCommand => new RelayCommand(OpenModGenerator);
+        public ICommand OpenCommunityModsCommand => new RelayCommand(OpenCommunityMods);
+        public ICommand OpenPresetModsCommand => new RelayCommand(OpenPresetMods);
 
-        private readonly Dictionary<string, byte[]> FontHeaders = new()
+        public ObservableCollection<ModConfig> Modifications { get; set; } = new();
+
+        public ICommand MoveUpCommand => new RelayCommand<ModConfig>(MoveUp);
+        public ICommand MoveDownCommand => new RelayCommand<ModConfig>(MoveDown);
+        public ICommand DeleteModCommand => new RelayCommand<ModConfig>(DeleteMod);
+        public ICommand OpenModFolderCommand => new RelayCommand<ModConfig>(OpenFolder);
+
+        public ModsViewModel()
         {
-            { "ttf", new byte[4] { 0x00, 0x01, 0x00, 0x00 } },
-            { "otf", new byte[4] { 0x4F, 0x54, 0x54, 0x4F } },
-            { "ttc", new byte[4] { 0x74, 0x74, 0x63, 0x66 } } 
-        };
-
-        private void ManageCustomFont()
-        {
-            if (!String.IsNullOrEmpty(TextFontTask.NewState))
-            {
-                TextFontTask.NewState = "";
-            }
-            else
-            {
-                var dialog = new OpenFileDialog
-                {
-                    Filter = $"{Strings.Menu_FontFiles}|*.ttf;*.otf;*.ttc"
-                };
-
-                if (dialog.ShowDialog() != true)
-                    return;
-
-                string type = dialog.FileName.Substring(dialog.FileName.Length-3, 3).ToLowerInvariant();
-
-                if (!FontHeaders.ContainsKey(type) 
-                    || !FontHeaders.Any(x => File.ReadAllBytes(dialog.FileName).Take(4).SequenceEqual(x.Value)))
-                {
-                    Frontend.ShowMessageBox(Strings.Menu_Mods_Misc_CustomFont_Invalid, MessageBoxImage.Error);
-                    return;
-                }
-
-                TextFontTask.NewState = dialog.FileName;
-            }
-
-            OnPropertyChanged(nameof(ChooseCustomFontVisibility));
-            OnPropertyChanged(nameof(DeleteCustomFontVisibility));
+            SyncDiskWithState();
+            LoadModifications();
         }
 
-        public ICommand OpenModsFolderCommand => new RelayCommand(OpenModsFolder);
-
-        public Visibility ChooseCustomFontVisibility => !String.IsNullOrEmpty(TextFontTask.NewState) ? Visibility.Collapsed : Visibility.Visible;
-
-        public Visibility DeleteCustomFontVisibility => !String.IsNullOrEmpty(TextFontTask.NewState) ? Visibility.Visible : Visibility.Collapsed;
-
-        public ICommand ManageCustomFontCommand => new RelayCommand(ManageCustomFont);
-
-        public ICommand OpenCompatSettingsCommand => new RelayCommand(OpenCompatSettings);
-
-        public ModPresetTask OldDeathSoundTask { get; } = new("OldDeathSound", @"content\sounds\ouch.ogg", "Sounds.OldDeath.ogg");
-
-        public ModPresetTask OldAvatarBackgroundTask { get; } = new("OldAvatarBackground", @"ExtraContent\places\Mobile.rbxl", "OldAvatarBackground.rbxl");
-
-        public ModPresetTask OldCharacterSoundsTask { get; } = new("OldCharacterSounds", new()
+        private void OpenFolder(ModConfig? mod)
         {
-            { @"content\sounds\action_footsteps_plastic.mp3", "Sounds.OldWalk.mp3"  },
-            { @"content\sounds\action_jump.mp3",              "Sounds.OldJump.mp3"  },
-            { @"content\sounds\action_get_up.mp3",            "Sounds.OldGetUp.mp3" },
-            { @"content\sounds\action_falling.mp3",           "Sounds.Empty.mp3"    },
-            { @"content\sounds\action_jump_land.mp3",         "Sounds.Empty.mp3"    },
-            { @"content\sounds\action_swim.mp3",              "Sounds.Empty.mp3"    },
-            { @"content\sounds\impact_water.mp3",             "Sounds.Empty.mp3"    }
-        });
+            if (mod == null) return;
 
-        public EmojiModPresetTask EmojiFontTask { get; } = new();
+            string folderPath = Path.Combine(Paths.Modifications, mod.FolderName);
 
-        public EnumModPresetTask<Enums.CursorType> CursorTypeTask { get; } = new("CursorType", new()
+            if (Directory.Exists(folderPath))
+            {
+                Process.Start("explorer.exe", folderPath);
+            }
+            else
+            {
+                Frontend.ShowMessageBox($"The folder for '{mod.FolderName}' no longer exists.", MessageBoxImage.Error, MessageBoxButton.OK);
+            }
+        }
+
+        [RelayCommand]
+        public void AddMod()
         {
+            string modsFolder = Paths.Modifications;
+
+            string baseName = "New Mod";
+            string folderName = baseName;
+            int counter = 1;
+
+            while (Modifications.Any(x => x.FolderName.Equals(folderName, StringComparison.OrdinalIgnoreCase)) ||
+                   Directory.Exists(Path.Combine(modsFolder, folderName)))
             {
-                Enums.CursorType.From2006, new()
-                {
-                    { @"content\textures\Cursors\KeyboardMouse\ArrowCursor.png",    "Cursor.From2006.ArrowCursor.png"    },
-                    { @"content\textures\Cursors\KeyboardMouse\ArrowFarCursor.png", "Cursor.From2006.ArrowFarCursor.png" }
-                }
-            },
+                folderName = $"{baseName} {counter}";
+                counter++;
+            }
+
+            if (!Directory.Exists(modsFolder))
+                Directory.CreateDirectory(modsFolder);
+
+            Directory.CreateDirectory(Path.Combine(modsFolder, folderName));
+
+            Modifications.Add(new ModConfig
             {
-                Enums.CursorType.From2013, new()
+                FolderName = folderName,
+                Target = "Both"
+            });
+        }
+
+        private void SyncDiskWithState()
+        {
+            if (!Directory.Exists(Paths.Modifications))
+            {
+                Directory.CreateDirectory(Paths.Modifications);
+                return;
+            }
+
+            var physicalFolders = Directory.GetDirectories(Paths.Modifications)
+                .Select(Path.GetFileName)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToHashSet();
+
+            App.State.Prop.Mods.RemoveAll(x => !physicalFolders.Contains(x.FolderName));
+
+            foreach (var folder in physicalFolders)
+            {
+                if (!App.State.Prop.Mods.Any(x => x.FolderName == folder))
                 {
-                    { @"content\textures\Cursors\KeyboardMouse\ArrowCursor.png",    "Cursor.From2013.ArrowCursor.png"    },
-                    { @"content\textures\Cursors\KeyboardMouse\ArrowFarCursor.png", "Cursor.From2013.ArrowFarCursor.png" }
+                    App.State.Prop.Mods.Add(new ModConfig
+                    {
+                        FolderName = folder!,
+                        Priority = App.State.Prop.Mods.Count
+                    });
                 }
             }
-        });
 
-        public FontModPresetTask TextFontTask { get; } = new();
+            App.State.Save();
+        }
 
-        private void OpenCompatSettings()
+        private void LoadModifications()
         {
-            string path = new RobloxPlayerData().ExecutablePath;
+            var sortedMods = App.State.Prop.Mods.OrderBy(x => x.Priority).ToList();
+            Modifications = new ObservableCollection<ModConfig>(sortedMods);
+        }
 
-            if (File.Exists(path))
-                PInvoke.SHObjectProperties(HWND.Null, SHOP_TYPE.SHOP_FILEPATH, path, "Compatibility");
-            else
-                Frontend.ShowMessageBox(Strings.Common_RobloxNotInstalled, MessageBoxImage.Error);
+        public static void CopyDirectory(string sourceDir, string destDir, bool overwrite)
+        {
+            var dir = new DirectoryInfo(sourceDir);
+            if (!dir.Exists) return;
 
+            Directory.CreateDirectory(destDir);
+
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string targetFilePath = Path.Combine(destDir, file.Name);
+                if (File.Exists(targetFilePath)) Filesystem.AssertReadOnly(targetFilePath);
+                file.CopyTo(targetFilePath, overwrite);
+            }
+
+            foreach (DirectoryInfo subDir in dir.GetDirectories())
+            {
+                CopyDirectory(subDir.FullName, Path.Combine(destDir, subDir.Name), overwrite);
+            }
+        }
+
+        public bool RenameMod(string oldName, string newName)
+        {
+            string safeName = string.Join("_", newName.Split(Path.GetInvalidFileNameChars())).Trim();
+
+            if (string.IsNullOrWhiteSpace(safeName) || safeName == oldName)
+                return false;
+
+            string oldPath = Path.Combine(Paths.Modifications, oldName);
+            string newPath = Path.Combine(Paths.Modifications, safeName);
+
+            try
+            {
+                if (!Directory.Exists(oldPath)) return false;
+
+                if (Directory.Exists(newPath))
+                {
+                    Frontend.ShowMessageBox($"A mod named '{safeName}' already exists.", MessageBoxImage.Error, MessageBoxButton.OK);
+                    return false;
+                }
+
+                Directory.Move(oldPath, newPath);
+
+                var mod = Modifications.FirstOrDefault(x => x.FolderName == oldName);
+                if (mod != null)
+                {
+                    mod.FolderName = safeName;
+                    UpdatePriorities();
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine("ModsViewModel::RenameMod", $"Rename failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        private void UpdatePriorities()
+        {
+            for (int i = 0; i < Modifications.Count; i++)
+            {
+                Modifications[i].Priority = i;
+            }
+
+            App.State.Prop.Mods = Modifications.ToList();
+        }
+
+        private void MoveUp(ModConfig? mod)
+        {
+            if (mod == null) return;
+            int index = Modifications.IndexOf(mod);
+            if (index > 0)
+            {
+                Modifications.Move(index, index - 1);
+                UpdatePriorities();
+            }
+        }
+
+        private void MoveDown(ModConfig? mod)
+        {
+            if (mod == null) return;
+            int index = Modifications.IndexOf(mod);
+            if (index < Modifications.Count - 1)
+            {
+                Modifications.Move(index, index + 1);
+                UpdatePriorities();
+            }
+        }
+
+        private void DeleteMod(ModConfig? mod)
+        {
+            if (mod == null) return;
+
+            var result = Frontend.ShowMessageBox($"Delete '{mod.FolderName}' permanently?", MessageBoxImage.Warning, MessageBoxButton.YesNo);
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                string path = Path.Combine(Paths.Modifications, mod.FolderName);
+                if (Directory.Exists(path)) Directory.Delete(path, true);
+
+                Modifications.Remove(mod);
+                UpdatePriorities();
+            }
+            catch (Exception ex) { App.Logger.WriteLine("ModsViewModel::Delete", ex.Message); }
+        }
+
+        public async Task ProcessDroppedFiles(string[] paths)
+        {
+            foreach (var path in paths)
+            {
+                string modName = Path.GetFileNameWithoutExtension(path) ?? "UnknownMod";
+                string targetDir = Path.Combine(Paths.Modifications, modName);
+
+                try
+                {
+                    if (Directory.Exists(path))
+                    {
+                        CopyDirectory(path, targetDir, true);
+                    }
+                    else if (Path.GetExtension(path).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Directory.CreateDirectory(targetDir);
+                        new FastZip().ExtractZip(path, targetDir, null);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    if (Modifications.Any(x => x.FolderName == modName)) continue;
+
+                    var newMod = new ModConfig
+                    {
+                        FolderName = modName,
+                        Priority = Modifications.Count > 0 ? Modifications.Max(x => x.Priority) + 1 : 0
+                    };
+
+                    Application.Current.Dispatcher.Invoke(() => Modifications.Add(newMod));
+                }
+                catch (Exception ex)
+                {
+                    App.Logger.WriteLine("ModsViewModel::ProcessDroppedFiles", $"Error: {ex.Message}");
+                }
+            }
+            UpdatePriorities();
         }
     }
 }

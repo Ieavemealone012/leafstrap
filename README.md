@@ -1,119 +1,114 @@
 <h1 align="center">
-    Leafstrap
+    Froststrap
 </h1>
 
 <p align="center">
-    Leafstrap is a cross-platform Roblox bootstrapper derived from <a href="https://github.com/Froststrap/Froststrap.git"><strong>Froststrap</strong></a>.
+    Froststrap is a fork of <a href="https://github.com/fishstrap/fishstrap.git"><strong>Fishstrap</strong></a>, focused on performance and customization
 </p>
 
 <p align="center">
-    <img src="https://github.com/Ieavemealone012/leafstrap/raw/main/Images/Bloxstrap-full-dark.png#gh-dark-mode-only" width="420">
-    <img src="https://github.com/Ieavemealone012/leafstrap/raw/main/Images/Bloxstrap-full-light.png#gh-light-mode-only" width="420">
+    <img src="./.resources/froststrap.png" height=200 alt="logo"/>
 </p>
 
 <p align="center">
-    If you'd like to support our project, consider giving this repository a star!
+    If you want to help support our project please consider giving this repo a star!
 </p>
 
 <div align="center">
 
+[![License][badge-repo-license]][repo-license]
+[![Downloads (Total)][badge-repo-downloads-total]][repo-releases]
+[![Downloads (Latest)][badge-repo-downloads]][repo-releases]
+[![Version][badge-repo-latest]][repo-latest]
+[![Stars][badge-repo-stars]][repo-stargazer]
+[![Discord][badge-discord]][discord-invite]
+
 </div>
 
-> [!NOTE]
-> Fishstrap is an application for **Windows 10 and above.** For other operating
-> systems, such as MacOS and various Linux distributions, you can try
-> [AppleBlox][appleblox] and [Sober][sober] respectively.
-
 > [!CAUTION]
-> The official repository [Leafstrap/Leafstrap](https://github.com/Leafstrap/Leafstrap.git) is the **ONLY PLACE** where you should download the binary/executable. Any other source is **NOT** affiliated with us and poses a potential security threat.
+> The repo, [github:RealMeddsam/Froststrap](https://github.com/RealMeddsam/Froststrap.git) and [our website](https://froststrap.github.io), are the **ONLY PLACES** you shall
+> get the binary/executable from, as any other is **NOT** affiliated with us, and is a potential threat. 
 
 ---
 
-## Key Improvements Over Fishstrap
+## Key Improvements Over Bloxstrap
 
 ### Integrations
-- Detailed server information using RoValra's API
-- Automatically rejoin servers you were disconnected from due to inactivity
+- Player and message logs are now combined into **Logs Menu**
 - Disable Roblox’s built-in screenshot and video recording system
-- Custom Leafstrap Discord RPC that shows the current page/dialog
+- Custom Froststrap Discord RPC that shows the current page/dialog
 - Replace "Playing Roblox" with the name of the game you're playing using Custom Status Display
-- The playtime counter shows both total and session playtime
-- Roblox Studio RPC integrated within Leafstrap
-    * Change the Studio RPC thumbnail depending on the script that is open
-    * Show script type, name, and number of lines of code
+- Game history logging is now toggleable
+- PlayTime Counter shows both total and session playtime
+
+### Bootstrapper
+- Switch between all of the classic Roblox icons for the top bar icon
+- Change the Roblox process priority
+- Automatically close the Roblox Crash Handler to reduce memory usage
+- Integrated cleaner tool to remove leftover files (feature was made by fishstrap first not us)
 
 ### Mods
-- Multi-mod system that allows you to download many mods at once
-- Select where to apply the mod (Player/Studio)
-- Download community-made mods directly from within the app
-- Generate mods using hex codes, with options to color the cursor, Shift Lock, or Emote Wheel
-- Change the cursor, Shift Lock, death sound, and game font by selecting a file
-- Use custom cursor sets to change between your cursors faster
+- Generate Mods using custom gradient colors easily
+- Quick use Custom Cursors and Custom Shiftlocks easily
+- Have multiple Custom Cursor Sets ready for use with the click of a button
+- Easily add custom death sounds
 
 ### FastFlag Enhancements
-- Automatic notification when applying FastFlags that are not in the Roblox FastFlag Allowlist
-- Create or use FastFlag profiles
-- Change all Roblox FastFlags in the allowlist via the FastFlag settings
-- Click 'Clean List' to remove flags that are not in the Roblox FastFlag Allowlist
+- Toggle advanced settings
+- Better Profiles
+- Press Ctrl+Z and Ctrl+Y to Undo/Redo changes
+- Built-in FastFlag lists inside of the profiles dialog
+- Remove invalid/default flags and automatically update outdated ones in one click
+- Use Preset Column to help find which flags are toggleables in fastflag settings
+- FastFlag Warning system to help tell you about ban worthy fastflags
+- Select values quickly using the built-in value selector when adding flags
+- Use Find Flag feature to check all of Robloxs FastFlags
+- Publish and Use other peoples published lists in Public Flag Lists
 
 ### UI & Appearance
 - Fully customizable bootstrapper launcher
-- Change the app font to any font you prefer
-- Supports image and gradient background themes
-- Built-in app themes
-- Change the window background to Aero, Acrylic, or Mica
+- Change the app font to any font you want
+- Supports animated GIF, image, and gradient backgrounds themes
+- Built-in App themes
+- Use element toolbox when creating custom launchers (prob removing soon cuz its hella useless) 
 
 ### Settings
-- Easily switch Roblox update channels
+- Disable Hardware Acceleration to lower froststrap memory usage
+- Disable Froststrap Animations to help with performance
+- Fixed auto update that wont go off randomly
+- Easily switch Roblox update channels with action presets
 - Option to fully block Roblox updates
-- Replace Roblox’s changing version-xxxxx folders with a non-changing folder
-- View all currently available Roblox channels
+- Quickly Reset/Import/Export all your settings in one place
+- Use the debug menu to read log files
+- Easily uninstall Froststrap if its not to your liking (you totally shouldnt trust trust)
 
 ### Extra Features
-- Easily import settings from other bootstrappers such as Fishstrap and Bloxstrap
+- Remembers the last opened tab
+- Import settings from other bootstrappers easily like Fishstrap and Bloxstrap
+- Built-in PC tweaks for performance optimization
 - Create game shortcuts for faster game joining
-- Join servers in your region more easily using the region selector
-- Join servers in your selected region through the system tray while playing
-- Built-in account manager
+- Includes a hidden Easter egg page and game
 
-More features are planned! You can also suggest new features in the Issues section.
+More features are planned to be added, you can also sugguest a feature in our issues!
 
 ---
 
 ## Licensing
 
-All new code revisions are under [MPL-2.0](https://opensource.org/license/MPL-2.0).
+This project is **dual-licensed** under `GPL-3.0-or-later` and `Unlicensed`. 
 
-## Special thanks
+<!-- Badge defs -->
+[badge-repo-license]: https://img.shields.io/github/license/RealMeddsam/Froststrap?style=for-the-badge&color=37add9
+[badge-repo-downloads]: https://img.shields.io/github/downloads/RealMeddsam/Froststrap/latest/total?style=for-the-badge&color=37add9
+[badge-repo-downloads-total]: https://img.shields.io/github/downloads/RealMeddsam/Froststrap/total?style=for-the-badge&color=37add9
+[badge-repo-latest]: https://img.shields.io/github/v/release/RealMeddsam/Froststrap?style=for-the-badge&color=37add9
+[badge-repo-stars]: https://img.shields.io/github/stars/RealMeddsam/Froststrap?style=for-the-badge&color=37add9
+[badge-discord]: https://img.shields.io/discord/1364660238963179520?style=for-the-badge&label=discord&color=5865f2
 
-- [Valra](https://github.com/NotValra) for providing their API
-- Other independent contributors
+[repo-license]: https://github.com/RealMeddsam/Froststrap/blob/main/LICENSE
+[repo-actions]: https://github.com/RealMeddsam/Froststrap/actions
+[repo-releases]: https://github.com/RealMeddsam/Froststrap/releases
+[repo-latest]: https://github.com/RealMeddsam/Froststrap/releases/latest
+[repo-stargazer]: https://github.com/RealMeddsam/Froststrap/stargazers
 
-<div align="center">
-
-</div>
-
-[banner-light]: https://github.com/fishstrap/fishstrap/raw/main/Images/Fishstrap-Light.png#gh-light-mode-only
-[banner-dark]:  https://github.com/fishstrap/fishstrap/raw/main/Images/Fishstrap-Dark.png#gh-dark-mode-only
-
-[badge-license]:   https://img.shields.io/github/license/fishstrap/fishstrap?style=flat-square
-[badge-actions]:   https://img.shields.io/github/actions/workflow/status/fishstrap/fishstrap/ci-release.yml?branch=main&style=flat-square&label=builds
-[badge-downloads]: https://img.shields.io/github/downloads/fishstrap/fishstrap/latest/total?style=flat-square&color=981bfe
-[badge-latest]:    https://img.shields.io/github/v/release/fishstrap/fishstrap?style=flat-square&color=7a39fb
-[badge-discord]:   https://img.shields.io/discord/1299397064165429360?style=flat-square&logo=discord&logoColor=white&logoSize=auto&label=discord&color=4d3dff
-[badge-stars]:     https://img.shields.io/github/stars/fishstrap/fishstrap?style=flat-square&color=dd9900
-
-[repo-latest]:    https://github.com/fishstrap/fishstrap/releases/latest
-[repo-new-issue]: https://github.com/fishstrap/fishstrap/issues/new/choose
-
-[repo-showcase-dark]:  https://github.com/fishstrap/fishstrap/raw/main/Images/Showcase-Dark.png#gh-dark-mode-only
-[repo-showcase-light]:  https://github.com/fishstrap/fishstrap/raw/main/Images/Showcase-Light.png#gh-light-mode-only
-
-[discord-invite]: https://discord.gg/SRs5zb9BJd
-
-[bloxstrap]: https://bloxstraplabs.com
-[appleblox]: https://github.com/AppleBlox/appleblox
-[sober]:     https://sober.vinegarhq.org
-[rovalra]:   https://www.rovalra.com
-
-[devforum-fflags]: https://devforum.roblox.com/t/allowlist-for-local-client-configuration-via-fast-flags/3966569
+[discord-invite]: https://discord.gg/KdR9vpRcUN

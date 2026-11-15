@@ -1,6 +1,5 @@
 ﻿using Bloxstrap.AppData;
 using Bloxstrap.Integrations;
-using Bloxstrap.Models;
 
 namespace Bloxstrap
 {
@@ -9,17 +8,24 @@ namespace Bloxstrap
         private readonly InterProcessLock _lock = new("Watcher");
 
         private readonly WatcherData? _watcherData;
-        
+
         private readonly NotifyIconWrapper? _notifyIcon;
 
         public readonly ActivityWatcher? ActivityWatcher;
 
-        public readonly DiscordRichPresence? RichPresence;
+        public readonly WindowManipulation? WindowManipulation;
+
+        public readonly IntegrationWatcher? IntegrationWatcher;
+
+        public readonly PlayerDiscordRichPresence? PlayerRichPresence;
+        public readonly StudioDiscordRichPresence? StudioRichPresence;
+
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
+        private bool _isDisposed = false;
 
         public Watcher()
         {
             const string LOG_IDENT = "Watcher";
-
 
             if (!_lock.IsAcquired)
             {
@@ -29,28 +35,34 @@ namespace Bloxstrap
 
             string? watcherDataArg = App.LaunchSettings.WatcherFlag.Data;
 
-#if DEBUG
             if (String.IsNullOrEmpty(watcherDataArg))
             {
+#if DEBUG
                 string path = new RobloxPlayerData().ExecutablePath;
+                if (!File.Exists(path))
+                    throw new ApplicationException("Roblox player is not been installed");
+
                 using var gameClientProcess = Process.Start(path);
 
                 _watcherData = new() { ProcessId = gameClientProcess.Id };
-            }
 #else
-            if (String.IsNullOrEmpty(watcherDataArg))
                 throw new Exception("Watcher data not specified");
 #endif
-
-            if (!String.IsNullOrEmpty(watcherDataArg))
+            }
+            else
+            {
                 _watcherData = JsonSerializer.Deserialize<WatcherData>(Encoding.UTF8.GetString(Convert.FromBase64String(watcherDataArg)));
+            }
 
             if (_watcherData is null)
                 throw new Exception("Watcher data is invalid");
 
+            if (_watcherData.LaunchMode == LaunchMode.Player && App.Settings.Prop.FakeBorderlessFullscreen)
+                WindowManipulation = new(_watcherData.ProcessId);
+
             if (App.Settings.Prop.EnableActivityTracking)
             {
-                ActivityWatcher = new(_watcherData.LogFile);
+                ActivityWatcher = new(_watcherData.LogFile, _watcherData.LaunchMode, _watcherData.ProcessId);
 
                 if (App.Settings.Prop.UseDisableAppPatch)
                 {
@@ -62,11 +74,10 @@ namespace Bloxstrap
                     };
                 }
 
-                if (App.Settings.Prop.UseDiscordRichPresence && !App.State.Prop.WatcherRunning)
-                {
-                    App.Logger.WriteLine(LOG_IDENT, "Running rpc");
-                    RichPresence = new(ActivityWatcher);
-                }
+                if ((_watcherData.LaunchMode == LaunchMode.Studio || _watcherData.LaunchMode == LaunchMode.StudioAuth) && App.Settings.Prop.StudioRPC)
+                    StudioRichPresence = new(ActivityWatcher);
+                else if (_watcherData.LaunchMode == LaunchMode.Player && App.Settings.Prop.UseDiscordRichPresence)
+                    PlayerRichPresence = new(ActivityWatcher);
             }
 
             _notifyIcon = new(this);
@@ -108,9 +119,26 @@ namespace Bloxstrap
                 return;
 
             ActivityWatcher?.Start();
+            WindowManipulation?.Start();
 
-            while (Utilities.GetProcessesSafe().Any(x => x.Id == _watcherData.ProcessId))
-                await Task.Delay(1000);
+            try
+            {
+                while (!_cancellationTokenSource.Token.IsCancellationRequested &&
+                       Utilities.GetProcessesSafe().Any(x => x.Id == _watcherData.ProcessId))
+                {
+                    await Task.Delay(1000, _cancellationTokenSource.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                App.Logger.WriteLine("Watcher::Run", "Watcher was cancelled");
+                return;
+            }
+
+            if (_cancellationTokenSource.Token.IsCancellationRequested)
+                return;
+
+            AppStorageManager.Apply();
 
             if (_watcherData.AutoclosePids is not null)
             {
@@ -124,13 +152,20 @@ namespace Bloxstrap
 
         public void Dispose()
         {
+            if (_isDisposed)
+                return;
+
             App.Logger.WriteLine("Watcher::Dispose", "Disposing Watcher");
 
+            _cancellationTokenSource.Cancel();
+
+            IntegrationWatcher?.Dispose();
             _notifyIcon?.Dispose();
-            RichPresence?.Dispose();
+            PlayerRichPresence?.Dispose();
+            StudioRichPresence?.Dispose();
+            _cancellationTokenSource.Dispose();
 
-            App.State.Prop.WatcherRunning = false;
-
+            _isDisposed = true;
             GC.SuppressFinalize(this);
         }
     }

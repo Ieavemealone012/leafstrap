@@ -1,24 +1,17 @@
-﻿using Bloxstrap;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Bloxstrap.AppData
+﻿namespace Bloxstrap.AppData
 {
     public class RobloxPlayerData : CommonAppData, IAppData
     {
         public string ProductName => "Roblox";
 
-        public string BinaryType => "WindowsPlayer";
+        public override string BinaryType => "WindowsPlayer";
 
         public string RegistryName => "RobloxPlayer";
+
+        public string ProcessName => "RobloxPlayerBeta";
+
         public override string ExecutableName => App.RobloxPlayerAppName;
-        public override AppState State => App.State.Prop.Player;
-        public override IReadOnlyDictionary<string, string> PackageDirectoryMap { get; set; } = new Dictionary<string, string>()
-        {
-            { "RobloxApp.zip", @"" }
-        };
+
+        public override JsonManager<DistributionState> DistributionStateManager => App.PlayerState;
     }
 }

@@ -7,9 +7,12 @@
         LegacyDialog2011,
         ProgressDialog,
         ClassicFluentDialog,
+        [EnumName(StaticName = "Roblox Classic (2016)")]
+        Roblox2016Dialog,
+        TwentyFiveDialog,
         ByfronDialog,
-        [EnumName(StaticName = "Leafstrap")]
         FluentDialog,
+        FroststrapDialog,
         FluentAeroDialog,
         CustomDialog
     }

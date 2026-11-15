@@ -23,6 +23,10 @@
       "commandName": "Project",
       "commandLineArgs": "-player \"roblox://experiences/start?placeId=13700835620\""
     },
+    "Leafstrap (Channel Launch)": {
+      "commandName": "Project",
+      "commandLineArgs": "-player \"roblox-player:1+launchmode:play+channel:zcontrol+LaunchExp:InApp\""
+    },
     "Leafstrap (Studio Launch)": {
       "commandName": "Project",
       "commandLineArgs": "-studio"

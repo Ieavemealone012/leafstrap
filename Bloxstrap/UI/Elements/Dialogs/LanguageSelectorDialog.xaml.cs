@@ -27,6 +27,8 @@ namespace Bloxstrap.UI.Elements.Dialogs
             DataContext = viewModel;
             InitializeComponent();
 
+            App.FrostRPC?.SetDialog("Language Selector");
+
             viewModel.CloseRequestEvent += (_, _) => Close();
         }
     }

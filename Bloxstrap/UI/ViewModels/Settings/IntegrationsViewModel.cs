@@ -1,19 +1,36 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
-
-using Microsoft.Win32;
-
+﻿using Bloxstrap.Integrations;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json.Linq;
+using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Input;
 
 namespace Bloxstrap.UI.ViewModels.Settings
 {
     public class IntegrationsViewModel : NotifyPropertyChangedViewModel
     {
+        public bool EnableRobloxBackgroundApp
+        {
+            get => App.Settings.Prop.EnableRobloxBackgroundApp;
+            set => App.Settings.Prop.EnableRobloxBackgroundApp = value;
+        }
+
+        public IReadOnlyCollection<Enums.AppStoragePresets.RobloxTheme> RobloxThemes { get; } = RobloxThemeEx.Selections;
+
+        public Enums.AppStoragePresets.RobloxTheme RobloxTheme
+        {
+            get => App.Settings.Prop.RobloxTheme;
+            set => App.Settings.Prop.RobloxTheme = value;
+        }
+
         public ICommand AddIntegrationCommand => new RelayCommand(AddIntegration);
 
         public ICommand DeleteIntegrationCommand => new RelayCommand(DeleteIntegration);
 
         public ICommand BrowseIntegrationLocationCommand => new RelayCommand(BrowseIntegrationLocation);
+
+        public ICommand OpenGameHistoryCommand => new RelayCommand(OpenGameHistory);
 
         private void AddIntegration()
         {
@@ -71,16 +88,28 @@ namespace Bloxstrap.UI.ViewModels.Settings
 
                 if (!value)
                 {
-                    ShowServerDetailsEnabled = value;
-                    DisableAppPatchEnabled = value;
-                    DiscordActivityEnabled = value;
-                    DiscordActivityJoinEnabled = value;
+                    ShowServerDetailsEnabled = false;
+                    ShowGameHistoryEnabled = false;
+                    ShowServerUptimeEnabled = false;
+                    AutoRejoinEnabled = false;
+                    PlaytimeCounterEnabled = false;
+                    DisableAppPatchEnabled = false;
+                    DiscordActivityEnabled = false;
+                    DiscordActivityJoinEnabled = false;
+                    StudioRPCEnabled = false;
 
                     OnPropertyChanged(nameof(ShowServerDetailsEnabled));
+                    OnPropertyChanged(nameof(ShowGameHistoryEnabled));
+                    OnPropertyChanged(nameof(ShowServerUptimeEnabled));
+                    OnPropertyChanged(nameof(AutoRejoinEnabled));
+                    OnPropertyChanged(nameof(PlaytimeCounterEnabled));
                     OnPropertyChanged(nameof(DisableAppPatchEnabled));
                     OnPropertyChanged(nameof(DiscordActivityEnabled));
                     OnPropertyChanged(nameof(DiscordActivityJoinEnabled));
+                    OnPropertyChanged(nameof(StudioRPCEnabled));
                 }
+
+                OnPropertyChanged(nameof(ActivityTrackingEnabled));
             }
         }
 
@@ -90,13 +119,79 @@ namespace Bloxstrap.UI.ViewModels.Settings
             set => App.Settings.Prop.ShowServerDetails = value;
         }
 
-        public bool PlayerLogsEnabled
+        public bool ShowServerUptimeEnabled
         {
-            get => App.FastFlags.GetPreset("Players.LogLevel") == "trace"; // we r using this to determine if its enabled
-            set {
-                App.FastFlags.SetPreset("Players.LogLevel", value ? "trace" : null);
-                App.FastFlags.SetPreset("Players.LogPattern", value ? "ExpChat/mountClientApp" : null);
+            get => App.Settings.Prop.ShowServerUptime;
+            set => App.Settings.Prop.ShowServerUptime = value;
+        }
+
+        public bool PlaytimeCounterEnabled
+        {
+            get => App.Settings.Prop.PlaytimeCounter;
+            set => App.Settings.Prop.PlaytimeCounter = value;
+        }
+
+        public bool AutoRejoinEnabled
+        {
+            get => App.Settings.Prop.AutoRejoin;
+            set => App.Settings.Prop.AutoRejoin = value;
+        }
+
+        public bool VulkanFullscreenAllowed =>
+            (App.FastFlags.GetPreset("Rendering.Mode.Vulkan") ?? "False")
+                .Equals("True", StringComparison.OrdinalIgnoreCase);
+
+        public bool EnableFakeBorderlessFullscreen
+        {
+            get => VulkanFullscreenAllowed && App.Settings.Prop.FakeBorderlessFullscreen;
+            set
+            {
+                App.Settings.Prop.FakeBorderlessFullscreen = VulkanFullscreenAllowed && value;
+                OnPropertyChanged(nameof(EnableFakeBorderlessFullscreen));
             }
+        }
+
+        public bool ShowGameHistoryEnabled
+        {
+            get => App.Settings.Prop.ShowGameHistoryMenu;
+            set 
+            {
+                App.Settings.Prop.ShowGameHistoryMenu = value;
+                OnPropertyChanged(nameof(ShowGameHistoryEnabled));
+            }
+        }
+
+        private void OpenGameHistory()
+        {
+            try
+            {
+                var activityWatcher = new ActivityWatcher();
+
+                var serverHistoryWindow = new Bloxstrap.UI.Elements.ContextMenu.ServerHistory(activityWatcher);
+                serverHistoryWindow.Show();
+
+                App.FrostRPC?.SetDialog("Game History");
+
+                serverHistoryWindow.Closed += (s, e) =>
+                {
+                    activityWatcher?.Dispose();
+                    App.FrostRPC?.ClearDialog();
+                };
+            }
+            catch (Exception ex)
+            {
+                // Handle any errors
+                MessageBox.Show($"Failed to open Game History: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public ObservableCollection<TrayDoubleClickAction> TrayDoubleClickActions { get; } =
+            new ObservableCollection<TrayDoubleClickAction>(Enum.GetValues(typeof(TrayDoubleClickAction)).Cast<TrayDoubleClickAction>());
+
+        public TrayDoubleClickAction SelectedDoubleClickAction
+        {
+            get => App.Settings.Prop.DoubleClickAction;
+            set => App.Settings.Prop.DoubleClickAction = value;
         }
 
         public bool DiscordActivityEnabled
@@ -109,9 +204,34 @@ namespace Bloxstrap.UI.ViewModels.Settings
                 if (!value)
                 {
                     DiscordActivityJoinEnabled = value;
+                    EnableCustomStatusDisplay = value;
                     DiscordAccountOnProfile = value;
                     OnPropertyChanged(nameof(DiscordActivityJoinEnabled));
+                    OnPropertyChanged(nameof(EnableCustomStatusDisplay));
                     OnPropertyChanged(nameof(DiscordAccountOnProfile));
+                }
+            }
+        }
+
+        public bool ShowUsingFroststrapRPC
+        {
+            get => App.Settings.Prop.ShowUsingFroststrapRPC;
+            set
+            {
+                App.Settings.Prop.ShowUsingFroststrapRPC = value;
+
+                if (value)
+                {
+                    if (App.FrostRPC == null)
+                    {
+                        App.FrostRPC = new FroststrapRichPresence();
+                        App.FrostRPC.SetPage("Integration");
+                    }
+                }
+                else
+                {
+                    App.FrostRPC?.Dispose();
+                    App.FrostRPC = null;
                 }
             }
         }
@@ -120,6 +240,29 @@ namespace Bloxstrap.UI.ViewModels.Settings
         {
             get => !App.Settings.Prop.HideRPCButtons;
             set => App.Settings.Prop.HideRPCButtons = !value;
+        }
+
+        public bool EnableCustomStatusDisplay
+        {
+            get => App.Settings.Prop.EnableCustomStatusDisplay;
+            set => App.Settings.Prop.EnableCustomStatusDisplay = value;
+        }
+
+        public IReadOnlyDictionary<string, DiscordRPCStatusDisplay> DiscordStatusDisplayTypes =>
+            new Dictionary<string, DiscordRPCStatusDisplay>
+            {
+                { "Name (Playing Roblox)", DiscordRPCStatusDisplay.GameName },
+                { "Details (Playing Game)", DiscordRPCStatusDisplay.ActivityDetails }
+            };
+
+        public string SelectedDiscordStatusDisplay
+        {
+            get => DiscordStatusDisplayTypes.First(pair => pair.Value == App.Settings.Prop.RichPresenceStatusDisplayType).Key;
+            set
+            {
+                if (DiscordStatusDisplayTypes.TryGetValue(value, out var displayType))
+                    App.Settings.Prop.RichPresenceStatusDisplayType = displayType;
+            }
         }
 
         public bool DiscordAccountOnProfile
@@ -134,6 +277,73 @@ namespace Bloxstrap.UI.ViewModels.Settings
             set => App.Settings.Prop.UseDisableAppPatch = value;
         }
 
+        public bool StudioRPCEnabled
+        {
+            get => App.Settings.Prop.StudioRPC;
+            set
+            {
+                App.Settings.Prop.StudioRPC = value;
+
+                if (!value)
+                {
+                    ThumbnailChanging = value;
+                    EditingInfo = value;
+                    WorkspaceInfo = value;
+                    ShowTesting = value;
+                    StudioGameButton = value;
+                    OnPropertyChanged(nameof(ThumbnailChanging));
+                    OnPropertyChanged(nameof(EditingInfo));
+                    OnPropertyChanged(nameof(WorkspaceInfo));
+                    OnPropertyChanged(nameof(ShowTesting));
+                    OnPropertyChanged(nameof(StudioGameButton));
+                }
+
+                StudioPluginManager.Sync();
+            }
+        }
+
+        public bool ThumbnailChanging
+        {
+            get => App.Settings.Prop.StudioThumbnailChanging;
+            set => App.Settings.Prop.StudioThumbnailChanging = value;
+        }
+
+        public bool EditingInfo
+        {
+            get => App.Settings.Prop.StudioEditingInfo;
+            set => App.Settings.Prop.StudioEditingInfo = value;
+        }
+
+        public bool WorkspaceInfo
+        {
+            get => App.Settings.Prop.StudioWorkspaceInfo;
+            set => App.Settings.Prop.StudioWorkspaceInfo= value;
+        }
+
+        public bool ShowTesting
+        {
+            get => App.Settings.Prop.StudioShowTesting;
+            set => App.Settings.Prop.StudioShowTesting = value;
+        }
+
+        public bool StudioGameButton
+        {
+            get => App.Settings.Prop.StudioGameButton;
+            set => App.Settings.Prop.StudioGameButton = value;
+        }
+
+        public bool DisableRobloxRecording
+        {
+            get => IsBlocked(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "Roblox"));
+            set => SetBlockState(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "Roblox"), value);
+        }
+
+        public bool DisableRobloxScreenshots
+        {
+            get => IsBlocked(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Roblox"));
+            set => SetBlockState(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Roblox"), value);
+        }
+
         public ObservableCollection<CustomIntegration> CustomIntegrations
         {
             get => App.Settings.Prop.CustomIntegrations;
@@ -143,5 +353,60 @@ namespace Bloxstrap.UI.ViewModels.Settings
         public CustomIntegration? SelectedCustomIntegration { get; set; }
         public int SelectedCustomIntegrationIndex { get; set; }
         public bool IsCustomIntegrationSelected => SelectedCustomIntegration is not null;
+
+        private static bool IsBlocked(string path)
+        {
+            if (File.Exists(path) && !Directory.Exists(path))
+            {
+                var attr = File.GetAttributes(path);
+                return attr.HasFlag(FileAttributes.ReadOnly);
+            }
+            return false;
+        }
+
+        private static void SetBlockState(string targetPath, bool block)
+        {
+            const string LOG_IDENT = "Watcher::SetBlockState";
+            string backupPath = targetPath + " (Before Blocking)";
+
+            try
+            {
+                if (block)
+                {
+                    if (Directory.Exists(targetPath))
+                    {
+                        if (Directory.EnumerateFileSystemEntries(targetPath).Any())
+                        {
+                            if (!Directory.Exists(backupPath)) Directory.Move(targetPath, backupPath);
+                        }
+                        else Directory.Delete(targetPath);
+                    }
+
+                    if (!File.Exists(targetPath))
+                    {
+                        File.WriteAllBytes(targetPath, Array.Empty<byte>());
+                        File.SetAttributes(targetPath, FileAttributes.ReadOnly);
+                    }
+                }
+                else
+                {
+                    if (File.Exists(targetPath) && !Directory.Exists(targetPath))
+                    {
+                        var attr = File.GetAttributes(targetPath);
+                        File.SetAttributes(targetPath, attr & ~FileAttributes.ReadOnly);
+                        File.Delete(targetPath);
+                    }
+
+                    if (!Directory.Exists(targetPath) && Directory.Exists(backupPath))
+                    {
+                        Directory.Move(backupPath, targetPath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteException(LOG_IDENT, ex);
+            }
+        }
     }
 }

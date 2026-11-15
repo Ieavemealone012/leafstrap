@@ -1,9 +1,10 @@
-﻿using System.ComponentModel;
+﻿using Bloxstrap.UI.Elements.Bootstrapper.Base;
+using Bloxstrap.UI.ViewModels.Bootstrapper;
+using System.ComponentModel;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Shell;
-
-using Bloxstrap.UI.ViewModels.Bootstrapper;
-using Bloxstrap.UI.Elements.Bootstrapper.Base;
+using System.Windows.Threading;
 
 namespace Bloxstrap.UI.Elements.Bootstrapper
 {

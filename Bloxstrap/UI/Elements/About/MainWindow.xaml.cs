@@ -13,6 +13,8 @@ namespace Bloxstrap.UI.Elements.About
         {
             InitializeComponent();
 
+            App.FrostRPC?.SetDialog("About");
+
             App.Logger.WriteLine("MainWindow", "Initializing about window");
 
             if (Locale.CurrentCulture.Name.StartsWith("tr"))

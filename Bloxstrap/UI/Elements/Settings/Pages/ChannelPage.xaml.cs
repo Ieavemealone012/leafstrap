@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
+﻿using Bloxstrap.UI.Elements.ContextMenu;
+using Bloxstrap.UI.Elements.Dialogs;
 using Bloxstrap.UI.ViewModels.Settings;
+using Microsoft.Win32;
+using System.Windows;
+using Wpf.Ui.Hardware;
 
 namespace Bloxstrap.UI.Elements.Settings.Pages
 {
@@ -26,11 +16,19 @@ namespace Bloxstrap.UI.Elements.Settings.Pages
         {
             DataContext = new ChannelViewModel();
             InitializeComponent();
+            App.FrostRPC?.SetPage("Deployment");
         }
 
-        private void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
+        private void OpenChannelListDialog_Click(object sender, RoutedEventArgs e)
         {
+            App.FrostRPC?.SetDialog("Channel List");
 
+            var dialog = new ChannelListsDialog();
+            dialog.Owner = Window.GetWindow(this);
+
+            dialog.ShowDialog();
+
+            App.FrostRPC?.ClearDialog();
         }
     }
 }
