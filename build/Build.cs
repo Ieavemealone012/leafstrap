@@ -45,6 +45,9 @@ public partial class Build : FalloutBuild
     Target Restore => _ => _
         .Executes(() =>
         {
+            if (Environment.GetEnvironmentVariable("LEAFSTRAP_SKIP_NESTED_RESTORE") == "1")
+                return;
+
             var project = Solution.GetProject("Froststrap");
             string arch = RuntimeInformation.OSArchitecture switch
             {
