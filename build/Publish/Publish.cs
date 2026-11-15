@@ -54,8 +54,22 @@ public partial class Build : FalloutBuild
                                       $"--nologo";
 
         process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.OutputDataReceived += (_, args) =>
+        {
+            if (args.Data != null)
+                Console.WriteLine(args.Data);
+        };
+        process.ErrorDataReceived += (_, args) =>
+        {
+            if (args.Data != null)
+                Console.Error.WriteLine(args.Data);
+        };
 
         process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
         process.WaitForExit();
 
         if (process.ExitCode != 0)
