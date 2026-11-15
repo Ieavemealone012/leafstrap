@@ -1,5 +1,5 @@
 Name:           leafstrap
-Version:        %{?leafstrap_version}%{!?leafstrap_version:1.0.6}
+Version:        %{?leafstrap_version}%{!?leafstrap_version:1.0.7}
 Release:        1%{?dist}
 Summary:        %description
 
