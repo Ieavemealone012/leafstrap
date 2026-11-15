@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Fallout.Common;
 using Fallout.Common.IO;
 using Fallout.Solutions;
@@ -43,12 +44,27 @@ public partial class Build : FalloutBuild
     Target Restore => _ => _
         .Executes(() =>
         {
+            var project = Solution.GetProject("Froststrap");
+            string arch = RuntimeInformation.OSArchitecture switch
+            {
+                Architecture.X64 => "x64",
+                Architecture.Arm64 => "arm64",
+                _ => throw new PlatformNotSupportedException("Unsupported architecture for restoring.")
+            };
+            string rid = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"win-{arch}" :
+                         RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? $"linux-{arch}" :
+                         RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"osx-{arch}" :
+                         throw new PlatformNotSupportedException("Unsupported OS for restoring.");
+
             var process = new Process();
             process.StartInfo.FileName = "dotnet";
-            process.StartInfo.Arguments = "restore";         
+            process.StartInfo.Arguments = $"restore \"{project.Path}\" -r {rid} --nologo";
             process.StartInfo.UseShellExecute = false;            
             process.Start();
             process.WaitForExit();
+
+            if (process.ExitCode != 0)
+                throw new Exception($"Restore failed for {rid} with exit code {process.ExitCode}");
         });
 
     Target Publish => _ => _

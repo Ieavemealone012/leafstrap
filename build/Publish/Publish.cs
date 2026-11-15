@@ -51,6 +51,7 @@ public partial class Build : FalloutBuild
                                       $"-r {rid} " +
                                       $"-o \"{outputDirectory}\" " +
                                       $"-p:PublishProfile=\"{publishProfile}\" " +
+                                      $"--no-restore " +
                                       $"--nologo";
 
         process.StartInfo.UseShellExecute = false;
