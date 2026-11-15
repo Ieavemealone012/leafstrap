@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Leafstrap (Release) (${{ github.sha }})
           path: release
@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Leafstrap (Release) (${{ github.sha }})
           path: release
