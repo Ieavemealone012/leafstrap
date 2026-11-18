@@ -1,114 +1,98 @@
-<h1 align="center">
-    Froststrap
-</h1>
+# Leafstrap 🍃
 
-<p align="center">
-    Froststrap is a fork of <a href="https://github.com/fishstrap/fishstrap.git"><strong>Fishstrap</strong></a>, focused on performance and customization
-</p>
+Leafstrap is a Roblox bootstrapper maintained by Leaf, with customization, settings management, and launch tools. It builds on work from [Froststrap](https://github.com/RealMeddsam/Froststrap), [Fishstrap](https://github.com/fishstrap/fishstrap), and [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap).
 
-<p align="center">
-    <img src="./.resources/froststrap.png" height=200 alt="logo"/>
-</p>
+## Download
 
-<p align="center">
-    If you want to help support our project please consider giving this repo a star!
-</p>
+Download Leafstrap from [this repository's Releases page](https://github.com/Ieavemealone012/leafstrap/releases). Choose the package for your operating system and read that release's installation notes.
 
-<div align="center">
+The v1.0.7 release provides these packages:
 
-[![License][badge-repo-license]][repo-license]
-[![Downloads (Total)][badge-repo-downloads-total]][repo-releases]
-[![Downloads (Latest)][badge-repo-downloads]][repo-releases]
-[![Version][badge-repo-latest]][repo-latest]
-[![Stars][badge-repo-stars]][repo-stargazer]
-[![Discord][badge-discord]][discord-invite]
+| Platform | Release assets |
+| --- | --- |
+| Windows x64 | `Leafstrap-windows-x64.msi`, `Leafstrap.exe` |
+| macOS Apple Silicon | `Leafstrap-macos-arm64.pkg` |
+| macOS Intel | `Leafstrap-macos-x64.pkg` |
+| Linux x64 | `Leafstrap-linux-x64.AppImage`, `Leafstrap-linux-x64.deb`, `Leafstrap-linux-x64.rpm` |
 
-</div>
+Package availability and features can differ between platforms. This repository's current `main` branch contains the Windows WPF application and its build tooling; it does not contain the macOS or Linux application source. The build instructions below apply to that Windows source.
 
-> [!CAUTION]
-> The repo, [github:RealMeddsam/Froststrap](https://github.com/RealMeddsam/Froststrap.git) and [our website](https://froststrap.github.io), are the **ONLY PLACES** you shall
-> get the binary/executable from, as any other is **NOT** affiliated with us, and is a potential threat. 
+## Features
 
----
+The Windows application includes:
 
-## Key Improvements Over Bloxstrap
+- Roblox Player and Studio launch integration
+- Custom bootstrapper appearance, themes, backgrounds, and fonts
+- Cursor, sound, and other mod options
+- FastFlag settings, editing, profiles, and undo/redo
+- Discord Rich Presence and optional activity integrations
+- Settings import/export and log export
+- Stable and prerelease update preferences
 
-### Integrations
-- Player and message logs are now combined into **Logs Menu**
-- Disable Roblox’s built-in screenshot and video recording system
-- Custom Froststrap Discord RPC that shows the current page/dialog
-- Replace "Playing Roblox" with the name of the game you're playing using Custom Status Display
-- Game history logging is now toggleable
-- PlayTime Counter shows both total and session playtime
+See [release notes](https://github.com/Ieavemealone012/leafstrap/releases) for the changes and limitations of each release. Features inherited from upstream projects may evolve independently in Leafstrap.
 
-### Bootstrapper
-- Switch between all of the classic Roblox icons for the top bar icon
-- Change the Roblox process priority
-- Automatically close the Roblox Crash Handler to reduce memory usage
-- Integrated cleaner tool to remove leftover files (feature was made by fishstrap first not us)
+## Updates
 
-### Mods
-- Generate Mods using custom gradient colors easily
-- Quick use Custom Cursors and Custom Shiftlocks easily
-- Have multiple Custom Cursor Sets ready for use with the click of a button
-- Easily add custom death sounds
+Leafstrap checks its own [GitHub releases](https://github.com/Ieavemealone012/leafstrap/releases) for application updates. Update preferences are configurable in the application.
 
-### FastFlag Enhancements
-- Toggle advanced settings
-- Better Profiles
-- Press Ctrl+Z and Ctrl+Y to Undo/Redo changes
-- Built-in FastFlag lists inside of the profiles dialog
-- Remove invalid/default flags and automatically update outdated ones in one click
-- Use Preset Column to help find which flags are toggleables in fastflag settings
-- FastFlag Warning system to help tell you about ban worthy fastflags
-- Select values quickly using the built-in value selector when adding flags
-- Use Find Flag feature to check all of Robloxs FastFlags
-- Publish and Use other peoples published lists in Public Flag Lists
+For the v1.0.7 update flow, launch Roblox or Studio through Leafstrap to trigger its bootstrapper update check. Leaving the settings window open is not a silent background update check. See the notes for your installed release when testing prerelease updates.
 
-### UI & Appearance
-- Fully customizable bootstrapper launcher
-- Change the app font to any font you want
-- Supports animated GIF, image, and gradient backgrounds themes
-- Built-in App themes
-- Use element toolbox when creating custom launchers (prob removing soon cuz its hella useless) 
+## Build the Windows application
 
-### Settings
-- Disable Hardware Acceleration to lower froststrap memory usage
-- Disable Froststrap Animations to help with performance
-- Fixed auto update that wont go off randomly
-- Easily switch Roblox update channels with action presets
-- Option to fully block Roblox updates
-- Quickly Reset/Import/Export all your settings in one place
-- Use the debug menu to read log files
-- Easily uninstall Froststrap if its not to your liking (you totally shouldnt trust trust)
+### Requirements
 
-### Extra Features
-- Remembers the last opened tab
-- Import settings from other bootstrappers easily like Fishstrap and Bloxstrap
-- Built-in PC tweaks for performance optimization
-- Create game shortcuts for faster game joining
-- Includes a hidden Easter egg page and game
+- Windows with support for the .NET 10 SDK and Windows desktop applications
+- The **.NET 10 SDK**
+- Git, including this repository's submodules
 
-More features are planned to be added, you can also sugguest a feature in our issues!
+Clone the repository with its UI dependencies:
 
----
+```powershell
+git clone --recurse-submodules https://github.com/Ieavemealone012/leafstrap.git
+cd leafstrap
+```
 
-## Licensing
+For an existing checkout, initialize or update the submodules first:
 
-This project is **dual-licensed** under `GPL-3.0-or-later` and `Unlicensed`. 
+```powershell
+git submodule update --init --recursive
+```
 
-<!-- Badge defs -->
-[badge-repo-license]: https://img.shields.io/github/license/RealMeddsam/Froststrap?style=for-the-badge&color=37add9
-[badge-repo-downloads]: https://img.shields.io/github/downloads/RealMeddsam/Froststrap/latest/total?style=for-the-badge&color=37add9
-[badge-repo-downloads-total]: https://img.shields.io/github/downloads/RealMeddsam/Froststrap/total?style=for-the-badge&color=37add9
-[badge-repo-latest]: https://img.shields.io/github/v/release/RealMeddsam/Froststrap?style=for-the-badge&color=37add9
-[badge-repo-stars]: https://img.shields.io/github/stars/RealMeddsam/Froststrap?style=for-the-badge&color=37add9
-[badge-discord]: https://img.shields.io/discord/1364660238963179520?style=for-the-badge&label=discord&color=5865f2
+Build and publish using the included script:
 
-[repo-license]: https://github.com/RealMeddsam/Froststrap/blob/main/LICENSE
-[repo-actions]: https://github.com/RealMeddsam/Froststrap/actions
-[repo-releases]: https://github.com/RealMeddsam/Froststrap/releases
-[repo-latest]: https://github.com/RealMeddsam/Froststrap/releases/latest
-[repo-stargazer]: https://github.com/RealMeddsam/Froststrap/stargazers
+```powershell
+.\build-leafstrap.ps1
+```
 
-[discord-invite]: https://discord.gg/KdR9vpRcUN
+The script restores dependencies, builds the Windows x64 application, and publishes to:
+
+```text
+Bloxstrap\bin\Release\net10.0-windows\publish\win-x64\
+```
+
+The publish directory includes `Leafstrap.exe` and its release companion files. The current publish profile is framework-dependent (`SelfContained=false`), so the target Windows computer needs the matching .NET 10 Desktop Runtime.
+
+### Development build
+
+To restore and build the solution without publishing:
+
+```powershell
+dotnet restore .\Bloxstrap.sln
+dotnet build .\Bloxstrap.sln -c Debug --no-restore
+```
+
+The internal solution, project directory, and namespace retain the `Bloxstrap` name. The application assembly is named `Leafstrap`. Those internal names do not mean you downloaded the wrong project.
+
+## Report a problem or suggest a feature
+
+Use [Leafstrap Issues](https://github.com/Ieavemealone012/leafstrap/issues). For a bug report, include:
+
+- Your operating system, Leafstrap version, and installation package
+- What you did, what you expected, and what happened instead
+- Relevant error messages or logs, with account information removed
+
+## Credits and license files
+
+Leafstrap builds on contributions from Froststrap, Fishstrap, Bloxstrap, and their contributors. Their acknowledgements and third-party notices remain relevant.
+
+See the repository's [LICENSE](LICENSE), [LICENSE-MIT](LICENSE-MIT), [LICENSE-UNLICENSE](LICENSE-UNLICENSE), and bundled third-party notices for the license text included with the source. This README does not replace those documents.
